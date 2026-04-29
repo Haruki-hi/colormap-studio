@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Colormap Studio — CVD-Aware Colormap Generator</title>
+  <meta name="description"
+    content="Generate perceptually optimized colormaps with color vision deficiency awareness using simulated annealing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+
+<body>
+  <!-- Color picker modal backdrop -->
+  <div class="picker-backdrop" id="pickerBackdrop"></div>
+
+  <!-- Color Picker Modal (outside .app to avoid backdrop-filter containment) -->
+  <div class="color-picker-panel" id="colorPickerPanel" style="display:none">
+    <div class="picker-header">
+      <span>Slot <strong id="pickerIndex">0</strong></span>
+      <button class="picker-close" id="pickerClose">✕</button>
+    </div>
+    <div class="picker-body">
+      <div class="gamut-picker-area">
+        <div class="gamut-row">
+          <div class="gamut-canvas-wrapper">
+            <label class="control-label">a*-b* Gamut (L* = <span id="gamutLLabel">50</span>)</label>
+            <canvas id="gamutCanvas" class="gamut-canvas" width="260" height="260"></canvas>
+          </div>
+          <div class="lightness-slider-wrapper">
+            <label class="control-label">L*</label>
+            <div class="lightness-bar-track">
+              <canvas id="lightnessBar" class="lightness-bar" width="24" height="260"></canvas>
+              <input type="range" id="lightnessSlider" class="lightness-slider" min="0" max="100" value="50"
+                orient="vertical" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="picker-inputs">
+        <div class="picker-col">
+          <label>L*</label>
+          <input type="number" id="pickerL" step="0.5" min="0" max="100" />
+        </div>
+        <div class="picker-col">
+          <label>a*</label>
+          <input type="number" id="pickerA" step="0.5" min="-128" max="128" />
+        </div>
+        <div class="picker-col">
+          <label>b*</label>
+          <input type="number" id="pickerB" step="0.5" min="-128" max="128" />
+        </div>
+        <div class="picker-col">
+          <label>R</label>
+          <input type="number" id="pickerR" step="1" min="0" max="255" />
+        </div>
+        <div class="picker-col">
+          <label>G</label>
+          <input type="number" id="pickerG" step="1" min="0" max="255" />
+        </div>
+        <div class="picker-col">
+          <label>B</label>
+          <input type="number" id="pickerBl" step="0.5" min="0" max="255" />
+        </div>
+      </div>
+    </div>
+    <button class="btn-apply-color" id="btnApplyColor">Apply</button>
+  </div>
+
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="28" y2="28">
+                <stop offset="0%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#ec4899" />
+              </linearGradient>
+            </defs>
+            <circle cx="14" cy="14" r="12" stroke="url(#g1)" stroke-width="2.5" fill="none" />
+            <circle cx="14" cy="14" r="6" fill="url(#g1)" opacity="0.7" />
+          </svg>
+        </div>
+        <h1>Colormap Studio</h1>
+      </div>
+      <p class="header-sub">CVD-Aware Colormap Generator</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-page="generator" id="navGenerator">
+        <span class="material-symbols-outlined">palette</span>
+        Generator
+      </button>
+      <button class="nav-tab" data-page="test" id="navTest">
+        <span class="material-symbols-outlined">science</span>
+        Test
+      </button>
+      <button class="nav-tab" data-page="tutorial" id="navTutorial">
+        <span class="material-symbols-outlined">school</span>
+        Tutorial
+      </button>
+    </nav>
+
+    <!-- ==================== PAGE: GENERATOR ==================== -->
+    <div class="page" id="page-generator">
+      <main class="main-layout">
+        <!-- Left Panel: Controls -->
+        <section class="panel panel-controls">
+          <!-- Preset Selector -->
+          <div class="control-group">
+            <label class="control-label">Preset Colormap</label>
+            <select id="presetSelect" class="preset-select">
+              <option value="turbo">Turbo</option>
+              <option value="plasma">Plasma</option>
+              <option value="viridis">Viridis</option>
+              <option value="afmhot">Afmhot</option>
+              <option value="jet">Jet</option>
+              <option value="RdYlGn">RdYlGn (Diverging)</option>
+              <option value="Spectral">Spectral (Diverging)</option>
+              <option value="RdGn">RdGn (Diverging)</option>
+              <option value="Leaf_NASA">Leaf NASA (Diverging)</option>
+              <option value="custom">— Custom —</option>
+            </select>
+          </div>
+
+          <!-- CVD Toggles -->
+          <div class="control-group">
+            <label class="control-label">CVD Types</label>
+            <div class="cvd-toggles">
+              <label class="cvd-toggle">
+                <input type="checkbox" id="cvdP" checked />
+                <span class="cvd-chip cvd-p">P-type</span>
+              </label>
+              <label class="cvd-toggle">
+                <input type="checkbox" id="cvdD" checked />
+                <span class="cvd-chip cvd-d">D-type</span>
+              </label>
+              <label class="cvd-toggle">
+                <input type="checkbox" id="cvdT" />
+                <span class="cvd-chip cvd-t">T-type</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Advanced Parameters -->
+          <details class="advanced-details">
+            <summary class="control-label clickable">Advanced Parameters ▾</summary>
+            <div class="advanced-grid">
+              <div class="param-row">
+                <label>S1_WEIGHT</label>
+                <input type="number" id="paramS1" value="1.0" step="0.1" min="0" />
+              </div>
+              <div class="param-row">
+                <label>u_WEIGHT</label>
+                <input type="number" id="paramU" value="0.1" step="0.05" min="0" max="1" />
+              </div>
+              <div class="param-row">
+                <label>q_WEIGHT</label>
+                <input type="number" id="paramQ" value="0.7" step="0.05" min="0" max="1" />
+              </div>
+              <div class="param-row">
+                <label>R (pref)</label>
+                <input type="number" id="paramR" value="7.0" step="0.5" min="0" />
+              </div>
+              <div class="param-row">
+                <label>R' (non-pref)</label>
+                <input type="number" id="paramRDash" value="10.0" step="0.5" min="0" />
+              </div>
+              <div class="param-row">
+                <label>T_init</label>
+                <input type="number" id="paramTInit" value="1.0" step="0.1" min="0" />
+              </div>
+              <div class="param-row">
+                <label>T_end</label>
+                <input type="number" id="paramTEnd" value="0.0001" step="0.0001" min="0" />
+              </div>
+              <div class="param-row">
+                <label>Alpha</label>
+                <input type="number" id="paramAlpha" value="0.925" step="0.005" min="0" max="1" />
+              </div>
+              <div class="param-row">
+                <label>Iterations</label>
+                <input type="number" id="paramIter" value="5500" step="100" min="100" />
+              </div>
+            </div>
+          </details>
+
+          <!-- Optimize Button -->
+          <button class="btn-optimize" id="btnOptimize">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            Optimize
+          </button>
+
+          <!-- Progress -->
+          <div class="progress-container" id="progressContainer" style="display:none">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text">
+              <span id="progressPercent">0%</span>
+              <span id="progressScore"></span>
+            </div>
+          </div>
+
+          <!-- Lab Trajectory Visualization -->
+          <div class="lab-trajectory-panel" id="labTrajectoryPanel" style="display:none">
+            <label class="control-label">Lab Space Trajectory</label>
+            <div class="lab-trajectory-views">
+              <div class="lab-traj-view">
+                <div class="lab-traj-title">a*-b* Plane</div>
+                <canvas id="labTrajAB" class="lab-traj-canvas" width="240" height="240"></canvas>
+              </div>
+              <div class="lab-traj-view">
+                <div class="lab-traj-title">L* Profile</div>
+                <canvas id="labTrajL" class="lab-traj-canvas" width="240" height="140"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Center Panel: Color Grid + Colormap -->
+        <section class="panel panel-center">
+          <!-- 16-slot Color Strip -->
+          <div class="control-group">
+            <label class="control-label">Control Points <span class="hint">(click slot to assign, right-click to toggle
+                preference, ✕ to clear)</span></label>
+            <div class="color-strip" id="colorStrip"></div>
+          </div>
+
+          <!-- Colormap Preview -->
+          <div class="control-group">
+            <label class="control-label">Colormap Preview</label>
+            <canvas id="colormapCanvas" class="colormap-bar" height="40"></canvas>
+            <div class="colormap-labels">
+              <span>0</span><span>64</span><span>128</span><span>192</span><span>255</span>
+            </div>
+          </div>
+
+          <!-- CVD Previews -->
+          <div class="cvd-previews" id="cvdPreviews">
+            <div class="control-group" id="cvdPreviewP" style="display:none">
+              <label class="control-label cvd-label-p">P-type (Protan) Simulation</label>
+              <canvas class="colormap-bar" height="30" data-cvd="P"></canvas>
+            </div>
+            <div class="control-group" id="cvdPreviewD" style="display:none">
+              <label class="control-label cvd-label-d">D-type (Deutan) Simulation</label>
+              <canvas class="colormap-bar" height="30" data-cvd="D"></canvas>
+            </div>
+            <div class="control-group" id="cvdPreviewT" style="display:none">
+              <label class="control-label cvd-label-t">T-type (Tritan) Simulation</label>
+              <canvas class="colormap-bar" height="30" data-cvd="T"></canvas>
+            </div>
+          </div>
+
+          <!-- Score display -->
+          <div class="score-display" id="scoreDisplay" style="display:none">
+            <span class="score-label">e_score:</span>
+            <span class="score-value" id="scoreValue">—</span>
+          </div>
+
+          <div class="score-details" id="scoreDetails" style="display:none">
+            <!-- Breakdown will be injected here -->
+          </div>
+
+          <!-- Export -->
+          <div class="export-section">
+            <label class="control-label">Export</label>
+            <div class="export-format-group">
+              <div class="export-item">
+                <label class="export-item-label">JSON Format</label>
+                <select id="jsonFormatSelect" class="preset-select export-format-select">
+                  <option value="rgb01">RGB [0, 1]</option>
+                  <option value="hex">Hex (#RRGGBB)</option>
+                </select>
+                <button class="btn-export" id="btnExportJSON">⬇ JSON</button>
+              </div>
+              <div class="export-item">
+                <label class="export-item-label">CSV Format</label>
+                <select id="csvFormatSelect" class="preset-select export-format-select">
+                  <option value="rgb01">RGB [0, 1]</option>
+                  <option value="hex">Hex (#RRGGBB)</option>
+                  <option value="lab">L*, a*, b*</option>
+                </select>
+                <button class="btn-export" id="btnExportCSV">⬇ CSV</button>
+              </div>
+              <div class="export-item">
+                <button class="btn-export" id="btnExportCSS">⬇ CSS</button>
+              </div>
+              <div class="export-item">
+                <button class="btn-export" id="btnExportPNG">⬇ PNG</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ==================== PAGE: TEST ==================== -->
+    <div class="page" id="page-test" style="display:none">
+      <!-- Master View: Gallery -->
+      <div class="test-gallery-view" id="testGalleryView">
+        <div class="gallery-header">
+          <div class="gallery-title-area">
+            <h2>Test Data Collection</h2>
+            <p>Select a test dataset below to inspect it. The thumbnails show how your colormap applies across various patterns.</p>
+          </div>
+          <div class="gallery-controls">
+            <div class="control-group">
+              <label class="control-label">Colormap</label>
+              <select id="galleryColormapSelect" class="preset-select">
+                <option value="current">Current (from Generator)</option>
+                <option value="turbo">Turbo</option>
+                <option value="plasma">Plasma</option>
+                <option value="viridis">Viridis</option>
+                <option value="afmhot">Afmhot</option>
+                <option value="jet">Jet</option>
+                <option value="RdYlGn">RdYlGn</option>
+                <option value="Spectral">Spectral</option>
+                <option value="RdGn">RdGn</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-grid" id="galleryGrid">
+          <!-- Javascript will inject gallery cards here -->
+        </div>
+      </div>
+
+      <!-- Detail View: Inspector -->
+      <div class="test-detail-view" id="testDetailView" style="display:none">
+        <div class="detail-top-bar">
+          <button class="btn-back" id="btnBackToGallery">
+            <span class="material-symbols-outlined">arrow_back</span> Back
+          </button>
+          <h2 class="detail-title" id="detailTitle">Dataset Name</h2>
+        </div>
+
+        <div class="test-layout">
+          <!-- Left: Controls -->
+          <aside class="panel test-controls">
+            <div class="control-group">
+              <label class="control-label">Colormap</label>
+              <select id="testColormapSelect" class="preset-select">
+                <option value="current">Current (from Generator)</option>
+                <option value="turbo">Turbo</option>
+                <option value="plasma">Plasma</option>
+                <option value="viridis">Viridis</option>
+                <option value="afmhot">Afmhot</option>
+                <option value="jet">Jet</option>
+                <option value="RdYlGn">RdYlGn</option>
+                <option value="Spectral">Spectral</option>
+                <option value="RdGn">RdGn</option>
+              </select>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label">Colormap Preview</label>
+              <canvas id="testColormapBar" class="colormap-bar" height="36"></canvas>
+              <div class="colormap-labels">
+                <span>0.0</span><span>0.5</span><span>1.0</span>
+              </div>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label">View Mode</label>
+              <select id="testViewMode" class="preset-select">
+                <option value="standard">Standard (Simulation)</option>
+                <option value="analytic">Analytic (CVD Discrepancy)</option>
+              </select>
+            </div>
+
+            <div class="control-group" id="cvdSimulationControls">
+              <label class="control-label">CVD Simulation</label>
+              <div class="cvd-toggles">
+                <label class="cvd-toggle">
+                  <input type="checkbox" id="testCvdP" checked />
+                  <span class="cvd-chip cvd-p">P-type</span>
+                </label>
+                <label class="cvd-toggle">
+                  <input type="checkbox" id="testCvdD" checked />
+                  <span class="cvd-chip cvd-d">D-type</span>
+                </label>
+                <label class="cvd-toggle">
+                  <input type="checkbox" id="testCvdT" />
+                  <span class="cvd-chip cvd-t">T-type</span>
+                </label>
+              </div>
+            </div>
+            <!-- Target CVD for Analytic Mode -->
+            <div class="control-group" id="cvdAnalyticControls" style="display:none">
+              <label class="control-label">CVD Target for Discrepancy</label>
+              <select id="analyticTargetCvd" class="preset-select">
+                <option value="P">P-type (Protan)</option>
+                <option value="D">D-type (Deutan)</option>
+                <option value="T">T-type (Tritan)</option>
+              </select>
+            </div>
+
+            <!-- CT Windowing Controls (shown only for CT images) -->
+            <div class="control-group ct-windowing-group" id="ctWindowingGroup" style="display:none">
+              <label class="control-label">CT Windowing</label>
+              <select id="ctWindowPreset" class="preset-select">
+                <option value="full" selected>Full Range</option>
+                <option value="soft_tissue">Soft Tissue</option>
+                <option value="bone">Bone</option>
+                <option value="brain">Brain</option>
+                <option value="blood">Blood / Hemorrhage</option>
+                <option value="high_contrast">High Contrast</option>
+                <option value="custom">Custom</option>
+              </select>
+              <div class="ct-slider-group">
+                <div class="ct-slider-row">
+                  <label class="ct-slider-label">WW <span id="ctWWValue">255</span></label>
+                  <input type="range" id="ctWW" class="slider" min="1" max="255" value="255" />
+                </div>
+                <div class="ct-slider-row">
+                  <label class="ct-slider-label">WL <span id="ctWLValue">128</span></label>
+                  <input type="range" id="ctWL" class="slider" min="0" max="255" value="128" />
+                </div>
+              </div>
+            </div>
+
+            <div class="test-info" id="testInfo">
+              <div class="test-info-label">Data size</div>
+              <div class="test-info-value" id="testDataSize">—</div>
+              <div class="test-info-label">Value range</div>
+              <div class="test-info-value" id="testDataRange">—</div>
+            </div>
+
+            <div class="analytics-info" id="analyticsInfo" style="display:none">
+               <div class="test-info-label">Discrepancy (ΔE_n - ΔE_cvd)</div>
+               <div class="analytics-stats">
+                 <div>Max: <span id="statMax">—</span></div>
+                 <div>Min: <span id="statMin">—</span></div>
+                 <div>Avg: <span id="statAvg">—</span></div>
+                 <div>Var: <span id="statVar">—</span></div>
+               </div>
+            </div>
+
+            <!-- Data Attribution (shown for CT images) -->
+            <div class="data-attribution" id="dataAttribution" style="display:none">
+              <div class="attribution-title">Data Source</div>
+              <div class="attribution-body"></div>
+            </div>
+
+            <div class="test-tooltip" id="testTooltip" style="display:none">
+              <div class="tooltip-swatch" id="tooltipSwatch"></div>
+              <div class="tooltip-text" id="tooltipText">Value: —</div>
+            </div>
+          </aside>
+
+          <!-- Right: Visualization Grid -->
+          <div class="test-vis-area">
+            <!-- Standard View -->
+            <div class="test-vis-grid" id="testVisGrid">
+              <!-- Normal view -->
+              <div class="test-vis-card">
+                <div class="test-vis-title">Normal Vision</div>
+                <canvas id="testCanvasNormal" class="test-canvas"></canvas>
+              </div>
+              <!-- P-type -->
+              <div class="test-vis-card" id="testCardP">
+                <div class="test-vis-title cvd-label-p">P-type (Protan)</div>
+                <canvas id="testCanvasP" class="test-canvas"></canvas>
+              </div>
+              <!-- D-type -->
+              <div class="test-vis-card" id="testCardD">
+                <div class="test-vis-title cvd-label-d">D-type (Deutan)</div>
+                <canvas id="testCanvasD" class="test-canvas"></canvas>
+              </div>
+              <!-- T-type -->
+              <div class="test-vis-card" id="testCardT" style="display:none">
+                <div class="test-vis-title cvd-label-t">T-type (Tritan)</div>
+                <canvas id="testCanvasT" class="test-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Analytic View (CVD Consistency) -->
+            <div class="test-vis-grid" id="testAnalyticGrid" style="display:none">
+              <!-- Normal ΔE -->
+              <div class="test-vis-card">
+                <div class="test-vis-title">Normal Vision ΔE (Gradient)</div>
+                <canvas id="canvasAnalyticNormal" class="test-canvas"></canvas>
+              </div>
+              <!-- CVD ΔE -->
+              <div class="test-vis-card">
+                <div class="test-vis-title">CVD Simulation ΔE (Gradient)</div>
+                <canvas id="canvasAnalyticCVD" class="test-canvas"></canvas>
+              </div>
+              <!-- Discrepancy -->
+              <div class="test-vis-card span-2">
+                <div class="test-vis-title">CVD Discrepancy (Normal ΔE - CVD ΔE)</div>
+                <p class="analytic-hint">Blue: Over-contrasted in CVD. Red: Under-contrasted (loss of detail) in CVD. White: Consistent.</p>
+                <canvas id="canvasAnalyticDiff" class="test-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE: TUTORIAL ==================== -->
+    <div class="page" id="page-tutorial" style="display:none">
+      <div class="tutorial-layout">
+        <!-- Language Toggle -->
+        <div class="tutorial-lang-toggle">
+          <button class="lang-btn active" id="langJa" data-lang="ja">日本語</button>
+          <button class="lang-btn" id="langEn" data-lang="en">English</button>
+        </div>
+
+        <!-- Tutorial Content -->
+        <div class="tutorial-content" id="tutorialContent">
+          <!-- Sections will be rendered by tutorial-page.js -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
