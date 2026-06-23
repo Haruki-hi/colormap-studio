@@ -7,7 +7,10 @@ import {
   calculateCIEDE2000
 } from './colormath.js';
 import { interpolateColors } from './optimizer.js';
-import { getSharedColormap, PRESETS } from './main.js';
+
+// These are injected via initTestPage() to avoid circular dependency with main.js
+let _getSharedColormap = () => null;
+let _PRESETS = {};
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -125,19 +128,19 @@ function generateProceduralData(id) {
 function buildColormapLUT(colormapName) {
   let ls, as, bs, n;
   if (colormapName === 'current') {
-    const shared = getSharedColormap();
+    const shared = _getSharedColormap();
     if (shared && shared.length >= 2) {
       n = shared.length;
       ls = shared.map(c => c.L);
       as = shared.map(c => c.a);
       bs = shared.map(c => c.b);
     } else {
-      const data = PRESETS.turbo;
+      const data = _PRESETS.turbo;
       n = data.length;
       ls = data.map(c => c[0]); as = data.map(c => c[1]); bs = data.map(c => c[2]);
     }
   } else {
-    const data = PRESETS[colormapName];
+    const data = _PRESETS[colormapName];
     if (!data) return null;
     n = data.length;
     ls = data.map(c => c[0]); as = data.map(c => c[1]); bs = data.map(c => c[2]);
@@ -308,7 +311,7 @@ function applyWindowing(gray, ww, wl) {
   return Math.min(255, Math.max(0, Math.round(normalized * 255)));
 }
 
-function drawHeatmap(canvas, data, lut, dataName, ww, wl, showLegend = true) {
+function drawHeatmap(canvas, data, lut, dataName, ww, wl, showLegend = false) {
   if (!canvas || !data || !lut) return;
   const ctx = canvas.getContext('2d');
   canvas.width = data.cols; canvas.height = data.rows;
@@ -405,7 +408,7 @@ function drawScientificOverlay(canvas, dataName) {
   }
 }
 
-function drawImageMap(canvas, pixels, w, h, lut, ww, wl, showLegend = true) {
+function drawImageMap(canvas, pixels, w, h, lut, ww, wl, showLegend = false) {
   if (!canvas || !pixels || !lut) return;
   const ctx = canvas.getContext('2d');
   canvas.width = w; canvas.height = h;
@@ -450,68 +453,6 @@ function updateColormapLabels(minVal, maxVal) {
     const midVal = (minVal + maxVal) / 2;
     lbls[1].textContent = typeof minVal === 'number' ? (midVal % 1 === 0 ? midVal : midVal.toFixed(2)) : '0.5';
     lbls[2].textContent = typeof maxVal === 'number' ? (maxVal % 1 === 0 ? maxVal : maxVal.toFixed(2)) : '1.0';
-  }
-}
-
-async function renderAnalyticMode(dataName) {
-  if(!currentInterp) return;
-  const targetCVD = $('#analyticTargetCvd').value || 'P';
-  const simFn = targetCVD === 'P' ? simPBrettel : (targetCVD === 'D' ? simDBrettel : simTBrettel);
-  const labNormal = new Array(256), labCVD = new Array(256);
-  for(let i=0; i<256; i++) {
-     const l = currentInterp.ls[i], a = currentInterp.as[i], b = currentInterp.bs[i];
-     labNormal[i] = [l, a, b];
-     const cLab = [l, a, b]; simFn(cLab); labCVD[i] = cLab;
-  }
-  let w, h, getIdx;
-  const ww = parseInt($('#ctWW')?.value) || undefined;
-  const wl = parseInt($('#ctWL')?.value) || undefined;
-  if(isImageMode) {
-      w = activeImageW; h = activeImageH;
-      getIdx = (x, y) => applyWindowing(activeImagePixels[y*w + x], ww, wl);
-  } else {
-      w = activeData.cols; h = activeData.rows;
-      getIdx = (x, y) => {
-          const v = activeData.values[y]?.[x];
-          if(v === undefined || isNaN(v)) return -1;
-          return getValueIndex(v, dataName, activeData.min, activeData.max, ww, wl);
-      };
-  }
-  const cNorm = $('#canvasAnalyticNormal'), cCVD = $('#canvasAnalyticCVD'), cDiff = $('#canvasAnalyticDiff');
-  [cNorm, cCVD, cDiff].forEach(c => { c.width = w; c.height = h; });
-  const ctxNorm = cNorm.getContext('2d'), imgNorm = ctxNorm.createImageData(w, h);
-  const ctxCVD = cCVD.getContext('2d'), imgCVD = ctxCVD.createImageData(w, h);
-  const ctxDiff = cDiff.getContext('2d'), imgDiff = ctxDiff.createImageData(w, h);
-  let maxDiff = -Infinity, minDiff = Infinity, sumDiff = 0, sumSq = 0, pCount = 0;
-  for(let y=0; y<h-1; y++) {
-      for(let x=0; x<w-1; x++) {
-          const iBase = getIdx(x, y), iRight = getIdx(x+1, y), iDown = getIdx(x, y+1);
-          if(iBase < 0 || iRight < 0 || iDown < 0) continue;
-          const dENX = calculateCIEDE2000(labNormal[iBase][0], labNormal[iBase][1], labNormal[iBase][2], labNormal[iRight][0], labNormal[iRight][1], labNormal[iRight][2]);
-          const dENY = calculateCIEDE2000(labNormal[iBase][0], labNormal[iBase][1], labNormal[iBase][2], labNormal[iDown][0], labNormal[iDown][1], labNormal[iDown][2]);
-          const dEN = Math.max(dENX, dENY);
-          const dECX = calculateCIEDE2000(labCVD[iBase][0], labCVD[iBase][1], labCVD[iBase][2], labCVD[iRight][0], labCVD[iRight][1], labCVD[iRight][2]);
-          const dECY = calculateCIEDE2000(labCVD[iBase][0], labCVD[iBase][1], labCVD[iBase][2], labCVD[iDown][0], labCVD[iDown][1], labCVD[iDown][2]);
-          const dEC = Math.max(dECX, dECY);
-          const diff = dEN - dEC; 
-          if(diff > maxDiff) maxDiff = diff; if(diff < minDiff) minDiff = diff;
-          sumDiff += diff; sumSq += diff * diff; pCount++;
-          const p = (y*w + x)*4;
-          const gn = Math.min(255, dEN * 10);
-          imgNorm.data[p] = imgNorm.data[p+1] = imgNorm.data[p+2] = gn; imgNorm.data[p+3] = 255;
-          const gc = Math.min(255, dEC * 10);
-          imgCVD.data[p] = imgCVD.data[p+1] = imgCVD.data[p+2] = gc; imgCVD.data[p+3] = 255;
-          let rr=255, gg=255, bb=255;
-          if(diff > 0) { const scale = Math.min(1.0, diff / 5.0); gg = 255 - scale * 255; bb = 255 - scale * 255; }
-          else { const scale = Math.min(1.0, (-diff) / 5.0); rr = 255 - scale * 255; gg = 255 - scale * 255; }
-          imgDiff.data[p] = rr; imgDiff.data[p+1] = gg; imgDiff.data[p+2] = bb; imgDiff.data[p+3] = 255;
-      }
-  }
-  ctxNorm.putImageData(imgNorm, 0, 0); ctxCVD.putImageData(imgCVD, 0, 0); ctxDiff.putImageData(imgDiff, 0, 0);
-  if(pCount > 0) {
-      const avg = sumDiff / pCount; const vari = (sumSq / pCount) - (avg * avg);
-      $('#statMax').textContent = maxDiff.toFixed(2); $('#statMin').textContent = minDiff.toFixed(2);
-      $('#statAvg').textContent = avg.toFixed(2); $('#statVar').textContent = vari.toFixed(2);
   }
 }
 
@@ -569,11 +510,6 @@ export async function renderDetail() {
   if(!activeDatasetId) return;
   const thisVer = ++renderVersion;
   const mode = $('#testViewMode').value;
-  $('#cvdSimulationControls').style.display = mode === 'standard' ? '' : 'none';
-  $('#testVisGrid').style.display = mode === 'standard' ? '' : 'none';
-  $('#cvdAnalyticControls').style.display = mode === 'analytic' ? '' : 'none';
-  $('#testAnalyticGrid').style.display = mode === 'analytic' ? '' : 'none';
-  $('#analyticsInfo').style.display = mode === 'analytic' ? '' : 'none';
   const cmName = $('#testColormapSelect')?.value || 'current';
   const cm = buildColormapLUT(cmName);
   if(!cm) return;
@@ -601,7 +537,7 @@ export async function renderDetail() {
          if($('#testCvdP').checked) drawImageMap($('#testCanvasP'), activeImagePixels, activeImageW, activeImageH, buildCvdLUT(currentInterp, simPBrettel), ww, wl);
          if($('#testCvdD').checked) drawImageMap($('#testCanvasD'), activeImagePixels, activeImageW, activeImageH, buildCvdLUT(currentInterp, simDBrettel), ww, wl);
          if($('#testCvdT').checked) drawImageMap($('#testCanvasT'), activeImagePixels, activeImageW, activeImageH, buildCvdLUT(currentInterp, simTBrettel), ww, wl);
-     } else renderAnalyticMode(activeDatasetId);
+     }
   } else {
      activeImagePixels = null; activeData = data;
      $('#testDataSize').textContent = `${data.cols} × ${data.rows}`;
@@ -612,7 +548,7 @@ export async function renderDetail() {
          if($('#testCvdP').checked) drawHeatmap($('#testCanvasP'), activeData, buildCvdLUT(currentInterp, simPBrettel), activeDatasetId, ww, wl);
          if($('#testCvdD').checked) drawHeatmap($('#testCanvasD'), activeData, buildCvdLUT(currentInterp, simDBrettel), activeDatasetId, ww, wl);
          if($('#testCvdT').checked) drawHeatmap($('#testCanvasT'), activeData, buildCvdLUT(currentInterp, simTBrettel), activeDatasetId, ww, wl);
-     } else renderAnalyticMode(activeDatasetId);
+     }
   }
   if(mode === 'standard') {
       if($('#testCvdP').checked) $('#testCardP').style.display=''; else $('#testCardP').style.display='none';
@@ -687,7 +623,9 @@ function initTooltip() {
   canvas.addEventListener('mouseleave', () => { const tooltip = $('#testTooltip'); if (tooltip) tooltip.style.display = 'none'; });
 }
 
-export function initTestPage() {
+export function initTestPage(getSharedColormapFn, presets) {
+  _getSharedColormap = getSharedColormapFn;
+  _PRESETS = presets;
   $('#btnBackToGallery')?.addEventListener('click', showGallery);
   $('#galleryColormapSelect')?.addEventListener('change', renderGallery);
   $('#testColormapSelect')?.addEventListener('change', renderDetail);
@@ -695,8 +633,7 @@ export function initTestPage() {
   $('#testCvdP')?.addEventListener('change', renderDetail);
   $('#testCvdD')?.addEventListener('change', renderDetail);
   $('#testCvdT')?.addEventListener('change', renderDetail);
-  $('#analyticTargetCvd')?.addEventListener('change', renderDetail);
-  const ctWW = $('#ctWW'), ctWL = $('#ctWL'), ctPreset = $('#ctWindowPreset');
+const ctWW = $('#ctWW'), ctWL = $('#ctWL'), ctPreset = $('#ctWindowPreset');
   if (ctWW) ctWW.addEventListener('input', () => { $('#ctWWValue').textContent = ctWW.value; if (ctPreset) ctPreset.value = 'custom'; renderDetail(); });
   if (ctWL) ctWL.addEventListener('input', () => { $('#ctWLValue').textContent = ctWL.value; if (ctPreset) ctPreset.value = 'custom'; renderDetail(); });
   if (ctPreset) {

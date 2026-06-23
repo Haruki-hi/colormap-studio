@@ -175,36 +175,6 @@ const CONTENT = {
         `,
       },
       {
-        id: 'analytic-mode',
-        icon: '📊',
-        title: '分析モード（Analytic Mode）',
-        body: `
-          <p>Test ページの <strong>Analytic Mode</strong> では、カラーマップが CVD に対してどれだけ「一貫性」を持っているかを3つのマップで視覚化できます。</p>
-          <div class="analytic-mode-cards">
-            <div class="analytic-card">
-              <div class="analytic-card-title">Normal Vision ΔE</div>
-              <p>通常色覚での隣接ピクセル間の <strong>CIEDE2000 色差</strong>。明るいほど色が大きく変化している領域です。理想的なカラーマップでは、データの変化に比例してこの値が均一になります。</p>
-            </div>
-            <div class="analytic-card">
-              <div class="analytic-card-title">CVD Simulation ΔE</div>
-              <p>CVD シミュレーション下での同じ隣接ピクセル間の色差。CVD 対応カラーマップでは、上段（Normal Vision）と近い分布になるはずです。</p>
-            </div>
-            <div class="analytic-card analytic-diff-card">
-              <div class="analytic-card-title">CVD Discrepancy（差分マップ）</div>
-              <p>上記2つの差分（Normal ΔE − CVD ΔE）を色で表します：</p>
-              <ul>
-                <li><span class="diff-chip diff-white">白</span> 通常色覚と CVD でコントラストが一致（<strong>理想</strong>）</li>
-                <li><span class="diff-chip diff-red">赤</span> CVD 下でコントラストが失われる（情報の欠落・最も問題）</li>
-                <li><span class="diff-chip diff-blue">青</span> CVD 下でコントラストが過剰になる（過強調）</li>
-              </ul>
-            </div>
-          </div>
-          <div class="insight-box">
-            差分マップが全体的に白い＝CVD 対応度が高いカラーマップです。Colormap Studio の最適化は、この差分が最小になるよう設計されています。
-          </div>
-        `,
-      },
-      {
         id: 'how-to-use',
         icon: '📖',
         title: '使い方ガイド',
@@ -415,36 +385,6 @@ const CONTENT = {
               <div class="sa-step-num">4</div>
               <div class="sa-step-text">Gradually decrease temperature and repeat steps 2–3</div>
             </div>
-          </div>
-        `,
-      },
-      {
-        id: 'analytic-mode',
-        icon: '📊',
-        title: 'Analytic Mode',
-        body: `
-          <p>The <strong>Analytic Mode</strong> on the Test page visualizes how "consistent" your colormap is under CVD across three diagnostic maps.</p>
-          <div class="analytic-mode-cards">
-            <div class="analytic-card">
-              <div class="analytic-card-title">Normal Vision ΔE</div>
-              <p>The <strong>CIEDE2000 color difference</strong> between adjacent pixels under normal vision. Brighter areas indicate greater local color change. An ideal colormap shows this varying proportionally with data changes.</p>
-            </div>
-            <div class="analytic-card">
-              <div class="analytic-card-title">CVD Simulation ΔE</div>
-              <p>The same color differences under CVD simulation. For a CVD-friendly colormap, this should closely match the Normal Vision map above.</p>
-            </div>
-            <div class="analytic-card analytic-diff-card">
-              <div class="analytic-card-title">CVD Discrepancy Map</div>
-              <p>The difference (Normal ΔE − CVD ΔE) shown as color:</p>
-              <ul>
-                <li><span class="diff-chip diff-white">White</span> Contrast matches — <strong>ideal</strong></li>
-                <li><span class="diff-chip diff-red">Red</span> Contrast is lost under CVD — loss of information</li>
-                <li><span class="diff-chip diff-blue">Blue</span> Contrast is amplified under CVD — over-emphasis</li>
-              </ul>
-            </div>
-          </div>
-          <div class="insight-box">
-            A predominantly white discrepancy map means your colormap maintains consistent contrast under CVD. The Colormap Studio optimizer is designed to minimize this discrepancy.
           </div>
         `,
       },

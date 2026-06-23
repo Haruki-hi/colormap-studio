@@ -1448,7 +1448,7 @@ function initEvents() {
 function init() {
   initDefaults();
   initEvents();
-  initTestPage();
+  initTestPage(getSharedColormap, PRESETS);
   initTutorialPage();
   initRouting();
   renderAll();

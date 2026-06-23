@@ -7,6 +7,7 @@
   <title>Colormap Studio — CVD-Aware Colormap Generator</title>
   <meta name="description"
     content="Generate perceptually optimized colormaps with color vision deficiency awareness using simulated annealing." />
+  <meta name="robots" content="noindex">
   <meta name="google-site-verification" content="cfmaQU97n5CkxUqopzOob9SduLVCKcdy_2SuMfLSpc4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -375,7 +376,6 @@
               <label class="control-label">View Mode</label>
               <select id="testViewMode" class="preset-select">
                 <option value="standard">Standard (Simulation)</option>
-                <option value="analytic">Analytic (CVD Discrepancy)</option>
               </select>
             </div>
 
@@ -396,16 +396,6 @@
                 </label>
               </div>
             </div>
-            <!-- Target CVD for Analytic Mode -->
-            <div class="control-group" id="cvdAnalyticControls" style="display:none">
-              <label class="control-label">CVD Target for Discrepancy</label>
-              <select id="analyticTargetCvd" class="preset-select">
-                <option value="P">P-type (Protan)</option>
-                <option value="D">D-type (Deutan)</option>
-                <option value="T">T-type (Tritan)</option>
-              </select>
-            </div>
-
             <!-- CT Windowing Controls (shown only for CT images) -->
             <div class="control-group ct-windowing-group" id="ctWindowingGroup" style="display:none">
               <label class="control-label">CT Windowing</label>
@@ -435,16 +425,6 @@
               <div class="test-info-value" id="testDataSize">—</div>
               <div class="test-info-label">Value range</div>
               <div class="test-info-value" id="testDataRange">—</div>
-            </div>
-
-            <div class="analytics-info" id="analyticsInfo" style="display:none">
-               <div class="test-info-label">Discrepancy (ΔE_n - ΔE_cvd)</div>
-               <div class="analytics-stats">
-                 <div>Max: <span id="statMax">—</span></div>
-                 <div>Min: <span id="statMin">—</span></div>
-                 <div>Avg: <span id="statAvg">—</span></div>
-                 <div>Var: <span id="statVar">—</span></div>
-               </div>
             </div>
 
             <!-- Data Attribution (shown for CT images) -->
@@ -485,25 +465,6 @@
               </div>
             </div>
 
-            <!-- Analytic View (CVD Consistency) -->
-            <div class="test-vis-grid" id="testAnalyticGrid" style="display:none">
-              <!-- Normal ΔE -->
-              <div class="test-vis-card">
-                <div class="test-vis-title">Normal Vision ΔE (Gradient)</div>
-                <canvas id="canvasAnalyticNormal" class="test-canvas"></canvas>
-              </div>
-              <!-- CVD ΔE -->
-              <div class="test-vis-card">
-                <div class="test-vis-title">CVD Simulation ΔE (Gradient)</div>
-                <canvas id="canvasAnalyticCVD" class="test-canvas"></canvas>
-              </div>
-              <!-- Discrepancy -->
-              <div class="test-vis-card span-2">
-                <div class="test-vis-title">CVD Discrepancy (Normal ΔE - CVD ΔE)</div>
-                <p class="analytic-hint">Blue: Over-contrasted in CVD. Red: Under-contrasted (loss of detail) in CVD. White: Consistent.</p>
-                <canvas id="canvasAnalyticDiff" class="test-canvas"></canvas>
-              </div>
-            </div>
           </div>
         </div>
       </div>

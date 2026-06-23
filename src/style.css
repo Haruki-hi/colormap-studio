@@ -1721,6 +1721,22 @@ body {
   margin-bottom: 0.4rem;
 }
 
+/* Analytic mode: 3-column layout so all canvases fit in one screen */
+.analytic-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.analytic-canvas {
+  max-height: 260px;
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .analytic-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .span-2 {
   grid-column: span 2;
 }
