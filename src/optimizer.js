@@ -257,7 +257,7 @@ export function runSA(initialLs, initialAs, initialBs, prefIndices, params, onPr
   const {
     n, tInit, tEnd, alpha, iterCount,
     UP, UD, UT,
-    S1_WEIGHT, Q_WEIGHT, N_WEIGHT, psi_weight,
+    S1_WEIGHT, u_WEIGHT, q_WEIGHT,
     R, R_dash,
   } = params;
 
@@ -281,7 +281,7 @@ export function runSA(initialLs, initialAs, initialBs, prefIndices, params, onPr
     dInitial[i - 1] = calculateCIEDE2000(ls[i], as[i], bs[i], ls[i - 1], as[i - 1], bs[i - 1]);
   }
 
-  const scoreParams = { UP, UD, UT, S1_WEIGHT, Q_WEIGHT, N_WEIGHT, psi_weight };
+  const scoreParams = { UP, UD, UT, S1_WEIGHT, u_WEIGHT, q_WEIGHT };
   let eCur = eScore(lsCur, asCur, bsCur, n, dInitial, scoreParams);
   let eBestVal = eCur;
 
