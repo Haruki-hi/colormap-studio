@@ -49,7 +49,6 @@ const TEST_DATASETS = [
   { id: 'datasample7', type: 'csv', label: 'Sample: Stress Map',       group: 'Samples' },
 
   { id: 'LENNA',         type: 'image', label: 'Lenna (Grayscale)',       group: 'Images' },
-  { id: 'ct_hemorrhage', type: 'image', label: 'CT Brain Hemorrhage',     group: 'Images' },
 ];
 
 // Presets for 0-255 grayscale PNG images (not raw HU values)
@@ -61,8 +60,8 @@ const CT_WINDOW_PRESETS = {
   blood:          { ww: 60,  wl: 130, label: 'Blood/Hemorrhage' },
   high_contrast:  { ww: 40,  wl: 120, label: 'High Contrast' },
 };
-const CT_IMAGE_NAMES = ['ct_hemorrhage'];
-const CT_DATASET_IDS = ['ct_hemorrhage'];
+const CT_IMAGE_NAMES = [];
+const CT_DATASET_IDS = [];
 
 // ===== Procedural Generators =====
 function generateProceduralData(id) {
@@ -575,7 +574,6 @@ function updateCTControls(id) {
 function updateAttribution(dataName) {
   const attribution = $('#dataAttribution'); if(!attribution) return;
   const attrSources = {
-    'ct_hemorrhage': `<strong>CT Brain Hemorrhage</strong> (PNG grayscale, 0–255 range)`,
     'scientific_orbital': `<strong>Atomic Orbital (3d)</strong> (PyVista Inspired)`,
     'scientific_magnetic_coils': `<strong>Magnetic Field (Coils)</strong> (PyVista Inspired)`,
     'scientific_ct_phantom': `<strong>Shepp-Logan CT Phantom</strong> — HU values. WW/WL sliders control Hounsfield windowing.`,
