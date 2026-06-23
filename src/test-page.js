@@ -40,12 +40,7 @@ const TEST_DATASETS = [
   { id: 'proc_sinc',        type: 'proc', label: 'Math: Sinc (2D)',            group: 'Procedural' },
   { id: 'proc_diagonal_wave',type:'proc', label: 'Math: Diagonal Wave',        group: 'Procedural' },
 
-  // Planetary Computer Inspired
-  { id: 'landcover_sample', type: 'csv', label: 'Land Cover (Categorical)', group: 'Geospatial (Planetary)' },
-  { id: 'nasa_ndvi',        type: 'csv', label: 'NASA: NDVI (Vegetation)',  group: 'Geospatial (Planetary)' },
-  { id: 'nasa_sst',         type: 'csv', label: 'NASA: Sea Surface Temp',   group: 'Geospatial (Planetary)' },
-
-  { id: 'datasample1', type: 'csv', label: 'Sample: Diagonal Pattern', group: 'Samples' },
+{ id: 'datasample1', type: 'csv', label: 'Sample: Diagonal Pattern', group: 'Samples' },
   { id: 'datasample2', type: 'csv', label: 'Sample: Fractal Pattern',  group: 'Samples' },
   { id: 'datasample3', type: 'csv', label: 'Sample: Fluid Flow',       group: 'Samples' },
   { id: 'datasample4', type: 'csv', label: 'Sample: Topography',       group: 'Samples' },
@@ -585,9 +580,6 @@ function updateAttribution(dataName) {
     'scientific_magnetic_coils': `<strong>Magnetic Field (Coils)</strong> (PyVista Inspired)`,
     'scientific_ct_phantom': `<strong>Shepp-Logan CT Phantom</strong> — HU values. WW/WL sliders control Hounsfield windowing.`,
     'medical_brain_ct': `<strong>Synthetic Brain CT</strong> — Realistic HU values (air: −1000, brain: ~35, hemorrhage: ~75, bone: ~1500). Use brain/blood presets.`,
-    'landcover_sample': `<strong>Land Cover Classification</strong> (Planetary Computer Inspired)`,
-    'nasa_ndvi': `<strong>Vegetation Index (NDVI)</strong> (NASA NEO)`,
-    'nasa_sst': `<strong>Sea Surface Temperature</strong> (NASA NEO)`,
   };
   if (attrSources[dataName]) {
     attribution.style.display = ''; attribution.querySelector('.attribution-body').innerHTML = attrSources[dataName];
