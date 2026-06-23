@@ -1042,7 +1042,7 @@ function startOptimization() {
   };
 
   const worker = new Worker(
-    './src/optimizer.worker.js',
+    new URL('./optimizer.worker.js', import.meta.url),
     { type: 'module' }
   );
   state.worker = worker;
