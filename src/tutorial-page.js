@@ -192,6 +192,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>制御点を編集する</h4>
                 <p>16 スロットのカラーストリップで色を編集できます。スロットをクリックすると a*-b* 色域ピッカーが開きます。右クリックでプリファレンス（★）のオン/オフを切り替えます。</p>
+                <p><strong>⚠️ 両端のスロット（0番と15番）は必ず色を設定してください。</strong> これらはカラーマップの開始色と終了色を決める重要な端点です。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -206,6 +207,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>最適化を実行する</h4>
                 <p>「Optimize」ボタンをクリックすると SA が開始されます。プログレスバーで進捗を確認できます。</p>
+                <p><strong>注意：</strong> 最適化を開始するには、スロット 0（先頭）とスロット 15（末尾）の両方に色が設定されている必要があります。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -219,7 +221,7 @@ const CONTENT = {
               <div class="guide-step-icon">6</div>
               <div class="guide-step-content">
                 <h4>エクスポートする</h4>
-                <p>JSON、CSS、PNG、CSV 形式でカラーマップをエクスポートできます。</p>
+                <p>JSON、PNG、CSV 形式でカラーマップをエクスポートできます。</p>
               </div>
             </div>
           </div>
@@ -406,6 +408,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Edit Control Points</h4>
                 <p>Edit colors in the 16-slot color strip. Click a slot to open the a*-b* gamut picker. Right-click to toggle preference (★).</p>
+                <p><strong>⚠️ Slot 0 (start) and Slot 15 (end) must always be set.</strong> These are the required endpoints that define the start and end colors of the colormap.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -420,6 +423,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Run Optimization</h4>
                 <p>Click "Optimize" to start the SA process. Monitor progress via the progress bar.</p>
+                <p><strong>Note:</strong> Slot 0 and Slot 15 must both be set before optimization can start.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -433,7 +437,7 @@ const CONTENT = {
               <div class="guide-step-icon">6</div>
               <div class="guide-step-content">
                 <h4>Export</h4>
-                <p>Export your colormap in JSON, CSS, PNG, or CSV format.</p>
+                <p>Export your colormap in JSON, PNG, or CSV format.</p>
               </div>
             </div>
           </div>

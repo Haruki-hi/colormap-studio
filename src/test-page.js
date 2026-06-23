@@ -649,4 +649,4 @@ const ctWW = $('#ctWW'), ctWL = $('#ctWL'), ctPreset = $('#ctWindowPreset');
   showGallery();
 }
 
-export const renderTestPage = renderDetail;
+export const renderTestPage = renderGallery;

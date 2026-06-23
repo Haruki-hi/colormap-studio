@@ -979,6 +979,11 @@ function drawLabTrajectoryL() {
 function startOptimization() {
   if (state.isOptimizing) return;
   
+  const pts = state.optimizedSlots || state.slots;
+  if (!pts[0] || !pts[N_SLOTS - 1]) {
+    alert('両端のスロット（0番と15番）に色を設定してから最適化してください。\n\nPlease set colors for both endpoint slots (0 and 15) before optimizing.');
+    return;
+  }
   const full = getFullSlots();
   if (!full) {
     alert('Please assign at least 2 control points.');
@@ -1439,7 +1444,6 @@ function initEvents() {
 
   // Export
   $('#btnExportJSON').addEventListener('click', exportJSON);
-  $('#btnExportCSS').addEventListener('click', exportCSS);
   $('#btnExportPNG').addEventListener('click', exportPNG);
   $('#btnExportCSV').addEventListener('click', exportCSV);
 }
