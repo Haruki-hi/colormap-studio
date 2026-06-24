@@ -204,7 +204,7 @@ async function loadImage(name, ext = 'png') {
         const r = imgData.data[i * 4];
         const g = imgData.data[i * 4 + 1];
         const b = imgData.data[i * 4 + 2];
-        gray[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+        gray[i] = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
       }
       resolve({ pixels: gray, width: img.width, height: img.height });
     };
