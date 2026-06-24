@@ -367,14 +367,6 @@
               </div>
             </div>
             
-            <div class="control-group">
-              <label class="control-label">View mode</label>
-              <select id="testViewMode" class="preset-select">
-                <option value="standard">Standard (Simulation)</option>
-                <option value="analytic">Analytic (CVD Discrepancy)</option>
-              </select>
-            </div>
-
             <div class="control-group" id="cvdSimulationControls">
               <label class="control-label">CVD simulation</label>
               <div class="cvd-toggles">
@@ -392,16 +384,6 @@
                 </label>
               </div>
             </div>
-            <!-- Target CVD for Analytic Mode -->
-            <div class="control-group" id="cvdAnalyticControls" style="display:none">
-              <label class="control-label">CVD target for discrepancy</label>
-              <select id="analyticTargetCvd" class="preset-select">
-                <option value="P">P-type (Protan)</option>
-                <option value="D">D-type (Deutan)</option>
-                <option value="T">T-type (Tritan)</option>
-              </select>
-            </div>
-
             <!-- CT Windowing Controls (shown only for CT images) -->
             <div class="control-group ct-windowing-group" id="ctWindowingGroup" style="display:none">
               <label class="control-label">CT windowing</label>
@@ -431,16 +413,6 @@
               <div class="test-info-value" id="testDataSize">—</div>
               <div class="test-info-label">Value range</div>
               <div class="test-info-value" id="testDataRange">—</div>
-            </div>
-
-            <div class="analytics-info" id="analyticsInfo" style="display:none">
-               <div class="test-info-label">Discrepancy (ΔE_n - ΔE_cvd)</div>
-               <div class="analytics-stats">
-                 <div>Max: <span id="statMax">—</span></div>
-                 <div>Min: <span id="statMin">—</span></div>
-                 <div>Avg: <span id="statAvg">—</span></div>
-                 <div>Var: <span id="statVar">—</span></div>
-               </div>
             </div>
 
             <!-- Data Attribution (shown for CT images) -->
@@ -481,25 +453,6 @@
               </div>
             </div>
 
-            <!-- Analytic View (CVD Consistency) -->
-            <div class="test-vis-grid" id="testAnalyticGrid" style="display:none">
-              <!-- Normal ΔE -->
-              <div class="test-vis-card">
-                <div class="test-vis-title">Normal Vision ΔE (Gradient)</div>
-                <canvas id="canvasAnalyticNormal" class="test-canvas"></canvas>
-              </div>
-              <!-- CVD ΔE -->
-              <div class="test-vis-card">
-                <div class="test-vis-title">CVD Simulation ΔE (Gradient)</div>
-                <canvas id="canvasAnalyticCVD" class="test-canvas"></canvas>
-              </div>
-              <!-- Discrepancy -->
-              <div class="test-vis-card span-2">
-                <div class="test-vis-title">CVD Discrepancy (Normal ΔE - CVD ΔE)</div>
-                <p class="analytic-hint">Blue: Over-contrasted in CVD. Red: Under-contrasted (loss of detail) in CVD. White: Consistent.</p>
-                <canvas id="canvasAnalyticDiff" class="test-canvas"></canvas>
-              </div>
-            </div>
           </div>
         </div>
       </div>
