@@ -1266,6 +1266,33 @@ body {
   color: #c084fc;
 }
 
+.math-display {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: #c084fc;
+  letter-spacing: 0.04em;
+}
+
+.math-display sub {
+  font-size: 0.65em;
+  font-style: normal;
+}
+
+.math-note {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  letter-spacing: 0.02em;
+}
+
+.math-note sub {
+  font-size: 0.65em;
+  font-style: normal;
+}
+
 /* Parameter Table (Tutorial) */
 .param-table {
   width: 100%;

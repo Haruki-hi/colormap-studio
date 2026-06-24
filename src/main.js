@@ -210,14 +210,23 @@ export function getSharedColormap() {
 }
 
 function loadPreset(name) {
-  const data = PRESETS[name];
-  if (!data) return;
   state.optimizedSlots = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
-  for (let i = 0; i < N_SLOTS; i++) {
-    state.slots[i] = { L: data[i][0], a: data[i][1], b: data[i][2] };
-    state.prefIndices.add(i);
+  if (name === 'custom') {
+    for (let i = 0; i < N_SLOTS; i++) state.slots[i] = null;
+    // sRGB red (255,0,0) and blue (0,0,255) in CIE L*a*b*
+    state.slots[0]           = { L: 53.23, a: 80.11, b:  67.22 };
+    state.slots[N_SLOTS - 1] = { L: 32.30, a: 79.19, b: -107.86 };
+    state.prefIndices.add(0);
+    state.prefIndices.add(N_SLOTS - 1);
+  } else {
+    const data = PRESETS[name];
+    if (!data) return;
+    for (let i = 0; i < N_SLOTS; i++) {
+      state.slots[i] = { L: data[i][0], a: data[i][1], b: data[i][2] };
+      state.prefIndices.add(i);
+    }
   }
   hidePicker();
   renderAll();
@@ -719,15 +728,15 @@ function renderStats() {
   html += `<div class="score-detail-item"><span class="score-detail-label">UN (Uniformity N):</span> <span class="score-detail-value">${d.eu.toFixed(4)}</span></div>`;
   if (params.UP) {
     html += `<div class="score-detail-item"><span class="score-detail-label">UP (Uniformity P):</span> <span class="score-detail-value">${d.euP.toFixed(4)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QP (Quality P):</span> <span class="score-detail-value">${d.ePPsi.toFixed(4)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">QP (Contrast P):</span> <span class="score-detail-value">${d.ePPsi.toFixed(4)}</span></div>`;
   }
   if (params.UD) {
     html += `<div class="score-detail-item"><span class="score-detail-label">UD (Uniformity D):</span> <span class="score-detail-value">${d.euD.toFixed(4)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QD (Quality D):</span> <span class="score-detail-value">${d.eDPsi.toFixed(4)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">QD (Contrast D):</span> <span class="score-detail-value">${d.eDPsi.toFixed(4)}</span></div>`;
   }
   if (params.UT) {
     html += `<div class="score-detail-item"><span class="score-detail-label">UT (Uniformity T):</span> <span class="score-detail-value">${d.euT.toFixed(4)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QT (Quality T):</span> <span class="score-detail-value">${d.eTPsi.toFixed(4)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">QT (Contrast T):</span> <span class="score-detail-value">${d.eTPsi.toFixed(4)}</span></div>`;
   }
   html += `<div class="score-detail-item"><span class="score-detail-label">S (Smoothness):</span> <span class="score-detail-value">${d.es.toFixed(4)}</span></div>`;
   
@@ -1136,15 +1145,15 @@ function startOptimization() {
         html += `<div class="score-detail-item"><span class="score-detail-label">UN (Uniformity N):</span> <span class="score-detail-value">${d.eu.toFixed(4)}</span></div>`;
         if (params.UP) {
           html += `<div class="score-detail-item"><span class="score-detail-label">UP (Uniformity P):</span> <span class="score-detail-value">${d.euP.toFixed(4)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QP (Quality P):</span> <span class="score-detail-value">${d.ePPsi.toFixed(4)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">QP (Contrast P):</span> <span class="score-detail-value">${d.ePPsi.toFixed(4)}</span></div>`;
         }
         if (params.UD) {
           html += `<div class="score-detail-item"><span class="score-detail-label">UD (Uniformity D):</span> <span class="score-detail-value">${d.euD.toFixed(4)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QD (Quality D):</span> <span class="score-detail-value">${d.eDPsi.toFixed(4)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">QD (Contrast D):</span> <span class="score-detail-value">${d.eDPsi.toFixed(4)}</span></div>`;
         }
         if (params.UT) {
           html += `<div class="score-detail-item"><span class="score-detail-label">UT (Uniformity T):</span> <span class="score-detail-value">${d.euT.toFixed(4)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QT (Quality T):</span> <span class="score-detail-value">${d.eTPsi.toFixed(4)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">QT (Contrast T):</span> <span class="score-detail-value">${d.eTPsi.toFixed(4)}</span></div>`;
         }
         html += `<div class="score-detail-item"><span class="score-detail-label">S (Smoothness):</span> <span class="score-detail-value">${d.es.toFixed(4)}</span></div>`;
         
@@ -1347,10 +1356,7 @@ function initRouting() {
 function initEvents() {
   // Preset selector
   $('#presetSelect').addEventListener('change', (e) => {
-    const val = e.target.value;
-    if (val !== 'custom') {
-      loadPreset(val);
-    }
+    loadPreset(e.target.value);
   });
 
   // CVD toggles

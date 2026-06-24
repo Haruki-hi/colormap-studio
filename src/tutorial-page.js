@@ -47,7 +47,7 @@ const CONTENT = {
             <li><strong>CVD 非対応</strong>: P型・D型の色覚特性を持つ方には緑と赤の区別がほぼ不可能。</li>
           </ul>
           <div class="insight-box">
-            <strong>NASA・Nature・Science</strong> 等の主要機関・誌が Jet の使用を非推奨とし、知覚均一なカラーマップへの移行を推奨しています。
+            Jet の使用は非推奨とされており、知覚均一なカラーマップへの移行が推奨されています。
           </div>
         `,
       },
@@ -124,30 +124,31 @@ const CONTENT = {
         title: '最適化エンジン',
         body: `
           <p>Colormap Studio は <strong>焼きなまし法（Simulated Annealing, SA）</strong> を使って、CVD に配慮したカラーマップを自動生成します。</p>
-          <h3>目的関数 (e_score)</h3>
+          <h3>目的関数</h3>
           <p>最適化の目的関数は以下の要素を組み合わせています：</p>
           <div class="formula-card">
-            <code>e_score = u_WEIGHT × UC + q_WEIGHT × UQ + (1 - u_WEIGHT - q_WEIGHT) × es</code>
+            <div class="math-display">E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-note">（w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>）</div>
           </div>
           <ul>
-            <li><strong>UC (均等性スコア)</strong>: 各 CVD タイプ下での隣接する色の知覚差の「一貫性」を評価
+            <li><strong>U (均等性スコア)</strong>: 各 CVD タイプ下での隣接する色の知覚差の「一貫性」を評価
               <ul>
                 <li>隣接スロット間の ΔE の変動係数（標準偏差/平均）を最小化します。</li>
               </ul>
             </li>
-            <li><strong>UQ (品質・アクセシビリティスコア)</strong>: 全ペアの色の組み合わせにおける色の識別性を評価
+            <li><strong>Q (2色覚でのコントラスト確保項)</strong>: 全ペアの色の組み合わせにおける色の識別性を評価
               <ul>
                 <li>全ての色の組み合わせについて、CVD 下での色差が目標値（通常色覚の色差の半分、最大30）を下回らないよう重み付け評価します。</li>
               </ul>
             </li>
-            <li><strong>es (滑らかさ)</strong>: カラーマップパスの滑らかさ（方向変化の小ささ）を評価</li>
+            <li><strong>S (滑らかさ)</strong>: カラーマップパスの滑らかさ（方向変化の小ささ）を評価</li>
           </ul>
           <h3>主要パラメータ</h3>
           <table class="param-table">
             <thead><tr><th>パラメータ</th><th>説明</th><th>デフォルト</th></tr></thead>
             <tbody>
-              <tr><td>u_WEIGHT</td><td>均等性（UC）の重み</td><td>0.1</td></tr>
-              <tr><td>q_WEIGHT</td><td>品質（UQ）の重み</td><td>0.7</td></tr>
+              <tr><td>w<sub>u</sub> (u_WEIGHT)</td><td>均等性（U）の重み</td><td>0.1</td></tr>
+              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>コントラスト確保（Q）の重み</td><td>0.7</td></tr>
               <tr><td>S1_WEIGHT</td><td>滑らかさ（es）の計算時の係数</td><td>1.0</td></tr>
               <tr><td>R</td><td>プリファレンス色の移動バイアス半径</td><td>7.0</td></tr>
               <tr><td>R'</td><td>非プリファレンス色の移動バイアス半径</td><td>10.0</td></tr>
@@ -165,12 +166,42 @@ const CONTENT = {
             </div>
             <div class="sa-step">
               <div class="sa-step-num">3</div>
-              <div class="sa-step-text">e_score が改善されたら採用。悪化しても確率的に採用（温度に依存）</div>
+              <div class="sa-step-text">E が改善されたら採用。悪化しても確率的に採用（温度に依存）</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">4</div>
               <div class="sa-step-text">温度を徐々に下げながらステップ 2–3 を繰り返す</div>
             </div>
+          </div>
+        `,
+      },
+      {
+        id: 'analytic-mode',
+        icon: '📊',
+        title: '分析モード（Analytic Mode）',
+        body: `
+          <p>Test ページの <strong>Analytic Mode</strong> では、カラーマップが CVD に対してどれだけ「一貫性」を持っているかを3つのマップで視覚化できます。</p>
+          <div class="analytic-mode-cards">
+            <div class="analytic-card">
+              <div class="analytic-card-title">Normal Vision ΔE</div>
+              <p>通常色覚での隣接ピクセル間の <strong>CIEDE2000 色差</strong>。明るいほど色が大きく変化している領域です。理想的なカラーマップでは、データの変化に比例してこの値が均一になります。</p>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-card-title">CVD Simulation ΔE</div>
+              <p>CVD シミュレーション下での同じ隣接ピクセル間の色差。CVD 対応カラーマップでは、上段（Normal Vision）と近い分布になるはずです。</p>
+            </div>
+            <div class="analytic-card analytic-diff-card">
+              <div class="analytic-card-title">CVD Discrepancy（差分マップ）</div>
+              <p>上記2つの差分（Normal ΔE − CVD ΔE）を色で表します：</p>
+              <ul>
+                <li><span class="diff-chip diff-white">白</span> 通常色覚と CVD でコントラストが一致（<strong>理想</strong>）</li>
+                <li><span class="diff-chip diff-red">赤</span> CVD 下でコントラストが失われる（情報の欠落・最も問題）</li>
+                <li><span class="diff-chip diff-blue">青</span> CVD 下でコントラストが過剰になる（過強調）</li>
+              </ul>
+            </div>
+          </div>
+          <div class="insight-box">
+            差分マップが全体的に白い＝CVD 対応度が高いカラーマップです。Colormap Studio の最適化は、この差分が最小になるよう設計されています。
           </div>
         `,
       },
@@ -263,7 +294,7 @@ const CONTENT = {
             <li><strong>CVD inaccessible</strong>: For people with P-type or D-type CVD, red and green are nearly indistinguishable.</li>
           </ul>
           <div class="insight-box">
-            <strong>NASA, Nature, and Science</strong> have discouraged the use of Jet and recommend transitioning to perceptually uniform colormaps.
+            The use of Jet is widely considered non-recommended; transitioning to perceptually uniform colormaps is strongly advised.
           </div>
         `,
       },
@@ -340,30 +371,31 @@ const CONTENT = {
         title: 'Optimization Engine',
         body: `
           <p>Colormap Studio uses <strong>Simulated Annealing (SA)</strong> to automatically generate CVD-aware colormaps.</p>
-          <h3>Objective Function (e_score)</h3>
+          <h3>Objective Function</h3>
           <p>The optimization objective combines several components:</p>
           <div class="formula-card">
-            <code>e_score = u_WEIGHT × UC + q_WEIGHT × UQ + (1 - u_WEIGHT - q_WEIGHT) × es</code>
+            <div class="math-display">E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-note">(w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>)</div>
           </div>
           <ul>
-            <li><strong>UC (Uniformity Score)</strong>: Evaluates "consistency" of perceived color differences under CVD.
+            <li><strong>U (Uniformity score)</strong>: Evaluates "consistency" of perceived color differences under CVD.
               <ul>
                 <li>Minimizes the coefficient of variation (std dev / mean) of ΔE between adjacent slots.</li>
               </ul>
             </li>
-            <li><strong>UQ (Quality/Accessibility Score)</strong>: Evaluates discriminability across all color pairs.
+            <li><strong>Q (CVD contrast score)</strong>: Evaluates discriminability across all color pairs under CVD.
               <ul>
                 <li>Performs a weighted evaluation ensuring that CVD color differences do not fall below a target value (half of normal ΔE, up to 30) for all color combinations.</li>
               </ul>
             </li>
-            <li><strong>es (Smoothness)</strong>: Evaluates the smoothness of the colormap path in Lab space.</li>
+            <li><strong>S (Smoothness)</strong>: Evaluates the smoothness of the colormap path in Lab space.</li>
           </ul>
           <h3>Key Parameters</h3>
           <table class="param-table">
             <thead><tr><th>Parameter</th><th>Description</th><th>Default</th></tr></thead>
             <tbody>
-              <tr><td>u_WEIGHT</td><td>Uniformity (UC) weight</td><td>0.1</td></tr>
-              <tr><td>q_WEIGHT</td><td>Quality (UQ) weight</td><td>0.7</td></tr>
+              <tr><td>w<sub>u</sub> (u_WEIGHT)</td><td>Uniformity (U) weight</td><td>0.1</td></tr>
+              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>CVD contrast (Q) weight</td><td>0.7</td></tr>
               <tr><td>S1_WEIGHT</td><td>Coefficient for smoothness (es)</td><td>1.0</td></tr>
               <tr><td>R</td><td>Movement bias radius for preference colors</td><td>7.0</td></tr>
               <tr><td>R'</td><td>Movement bias radius for non-preference colors</td><td>10.0</td></tr>
@@ -381,12 +413,42 @@ const CONTENT = {
             </div>
             <div class="sa-step">
               <div class="sa-step-num">3</div>
-              <div class="sa-step-text">Accept if e_score improves; also accept probabilistically if worse (temperature-dependent)</div>
+              <div class="sa-step-text">Accept if E improves; also accept probabilistically if worse (temperature-dependent)</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">4</div>
               <div class="sa-step-text">Gradually decrease temperature and repeat steps 2–3</div>
             </div>
+          </div>
+        `,
+      },
+      {
+        id: 'analytic-mode',
+        icon: '📊',
+        title: 'Analytic Mode',
+        body: `
+          <p>The <strong>Analytic Mode</strong> on the Test page visualizes how "consistent" your colormap is under CVD across three diagnostic maps.</p>
+          <div class="analytic-mode-cards">
+            <div class="analytic-card">
+              <div class="analytic-card-title">Normal Vision ΔE</div>
+              <p>The <strong>CIEDE2000 color difference</strong> between adjacent pixels under normal vision. Brighter areas indicate greater local color change. An ideal colormap shows this varying proportionally with data changes.</p>
+            </div>
+            <div class="analytic-card">
+              <div class="analytic-card-title">CVD Simulation ΔE</div>
+              <p>The same color differences under CVD simulation. For a CVD-friendly colormap, this should closely match the Normal Vision map above.</p>
+            </div>
+            <div class="analytic-card analytic-diff-card">
+              <div class="analytic-card-title">CVD Discrepancy Map</div>
+              <p>The difference (Normal ΔE − CVD ΔE) shown as color:</p>
+              <ul>
+                <li><span class="diff-chip diff-white">White</span> Contrast matches — <strong>ideal</strong></li>
+                <li><span class="diff-chip diff-red">Red</span> Contrast is lost under CVD — loss of information</li>
+                <li><span class="diff-chip diff-blue">Blue</span> Contrast is amplified under CVD — over-emphasis</li>
+              </ul>
+            </div>
+          </div>
+          <div class="insight-box">
+            A predominantly white discrepancy map means your colormap maintains consistent contrast under CVD. The Colormap Studio optimizer is designed to minimize this discrepancy.
           </div>
         `,
       },
