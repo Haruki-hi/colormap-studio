@@ -187,8 +187,7 @@ body {
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.01em;
 }
 
 .control-label .hint {
@@ -941,7 +940,6 @@ body {
 .test-info-label {
   color: var(--text-muted);
   font-weight: 600;
-  text-transform: uppercase;
   font-size: 0.68rem;
 }
 
@@ -1013,8 +1011,7 @@ body {
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.01em;
 }
 
 .test-canvas {
@@ -1449,8 +1446,7 @@ body {
   font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.01em;
   margin-bottom: 0.35rem;
 }
 
@@ -1507,8 +1503,7 @@ body {
   font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.01em;
 }
 
 .lab-traj-canvas {
@@ -1583,8 +1578,7 @@ body {
   margin-top: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .gallery-group-container {
@@ -1719,22 +1713,6 @@ body {
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 0.4rem;
-}
-
-/* Analytic mode: 3-column layout so all canvases fit in one screen */
-.analytic-grid {
-  grid-template-columns: repeat(3, 1fr) !important;
-}
-
-.analytic-canvas {
-  max-height: 260px;
-  object-fit: contain;
-}
-
-@media (max-width: 900px) {
-  .analytic-grid {
-    grid-template-columns: 1fr !important;
-  }
 }
 
 .span-2 {

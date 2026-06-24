@@ -7,7 +7,6 @@
   <title>Colormap Studio — CVD-Aware Colormap Generator</title>
   <meta name="description"
     content="Generate perceptually optimized colormaps with color vision deficiency awareness using simulated annealing." />
-  <meta name="robots" content="noindex">
   <meta name="google-site-verification" content="cfmaQU97n5CkxUqopzOob9SduLVCKcdy_2SuMfLSpc4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -117,7 +116,7 @@
         <section class="panel panel-controls">
           <!-- Preset Selector -->
           <div class="control-group">
-            <label class="control-label">Preset Colormap</label>
+            <label class="control-label">Preset colormap</label>
             <select id="presetSelect" class="preset-select">
               <option value="turbo">Turbo</option>
               <option value="plasma">Plasma</option>
@@ -134,7 +133,7 @@
 
           <!-- CVD Toggles -->
           <div class="control-group">
-            <label class="control-label">CVD Types</label>
+            <label class="control-label">CVD types</label>
             <div class="cvd-toggles">
               <label class="cvd-toggle">
                 <input type="checkbox" id="cvdP" checked />
@@ -153,7 +152,7 @@
 
           <!-- Advanced Parameters -->
           <details class="advanced-details">
-            <summary class="control-label clickable">Advanced Parameters ▾</summary>
+            <summary class="control-label clickable">Advanced parameters ▾</summary>
             <div class="advanced-grid">
               <div class="param-row">
                 <label>S1_WEIGHT</label>
@@ -215,7 +214,7 @@
 
           <!-- Lab Trajectory Visualization -->
           <div class="lab-trajectory-panel" id="labTrajectoryPanel" style="display:none">
-            <label class="control-label">Lab Space Trajectory</label>
+            <label class="control-label">Lab space trajectory</label>
             <div class="lab-trajectory-views">
               <div class="lab-traj-view">
                 <div class="lab-traj-title">a*-b* Plane</div>
@@ -233,14 +232,13 @@
         <section class="panel panel-center">
           <!-- 16-slot Color Strip -->
           <div class="control-group">
-            <label class="control-label">Control Points <span class="hint">(click slot to assign, right-click to toggle
-                preference, ✕ to clear)</span></label>
+            <label class="control-label">Candidates of specified colors <span class="hint">(click slot to assign, right-click to toggle preference, ✕ to clear)</span></label>
             <div class="color-strip" id="colorStrip"></div>
           </div>
 
           <!-- Colormap Preview -->
           <div class="control-group">
-            <label class="control-label">Colormap Preview</label>
+            <label class="control-label">Colormap preview</label>
             <canvas id="colormapCanvas" class="colormap-bar" height="40"></canvas>
             <div class="colormap-labels">
               <span>0</span><span>64</span><span>128</span><span>192</span><span>255</span>
@@ -250,15 +248,15 @@
           <!-- CVD Previews -->
           <div class="cvd-previews" id="cvdPreviews">
             <div class="control-group" id="cvdPreviewP" style="display:none">
-              <label class="control-label cvd-label-p">P-type (Protan) Simulation</label>
+              <label class="control-label cvd-label-p">P-type (Protan) simulation</label>
               <canvas class="colormap-bar" height="30" data-cvd="P"></canvas>
             </div>
             <div class="control-group" id="cvdPreviewD" style="display:none">
-              <label class="control-label cvd-label-d">D-type (Deutan) Simulation</label>
+              <label class="control-label cvd-label-d">D-type (Deutan) simulation</label>
               <canvas class="colormap-bar" height="30" data-cvd="D"></canvas>
             </div>
             <div class="control-group" id="cvdPreviewT" style="display:none">
-              <label class="control-label cvd-label-t">T-type (Tritan) Simulation</label>
+              <label class="control-label cvd-label-t">T-type (Tritan) simulation</label>
               <canvas class="colormap-bar" height="30" data-cvd="T"></canvas>
             </div>
           </div>
@@ -362,7 +360,7 @@
             </div>
             
             <div class="control-group">
-              <label class="control-label">Colormap Preview</label>
+              <label class="control-label">Colormap preview</label>
               <canvas id="testColormapBar" class="colormap-bar" height="36"></canvas>
               <div class="colormap-labels">
                 <span>0.0</span><span>0.5</span><span>1.0</span>
@@ -370,14 +368,15 @@
             </div>
             
             <div class="control-group">
-              <label class="control-label">View Mode</label>
+              <label class="control-label">View mode</label>
               <select id="testViewMode" class="preset-select">
                 <option value="standard">Standard (Simulation)</option>
+                <option value="analytic">Analytic (CVD Discrepancy)</option>
               </select>
             </div>
 
             <div class="control-group" id="cvdSimulationControls">
-              <label class="control-label">CVD Simulation</label>
+              <label class="control-label">CVD simulation</label>
               <div class="cvd-toggles">
                 <label class="cvd-toggle">
                   <input type="checkbox" id="testCvdP" checked />
@@ -393,9 +392,19 @@
                 </label>
               </div>
             </div>
+            <!-- Target CVD for Analytic Mode -->
+            <div class="control-group" id="cvdAnalyticControls" style="display:none">
+              <label class="control-label">CVD target for discrepancy</label>
+              <select id="analyticTargetCvd" class="preset-select">
+                <option value="P">P-type (Protan)</option>
+                <option value="D">D-type (Deutan)</option>
+                <option value="T">T-type (Tritan)</option>
+              </select>
+            </div>
+
             <!-- CT Windowing Controls (shown only for CT images) -->
             <div class="control-group ct-windowing-group" id="ctWindowingGroup" style="display:none">
-              <label class="control-label">CT Windowing</label>
+              <label class="control-label">CT windowing</label>
               <select id="ctWindowPreset" class="preset-select">
                 <option value="full" selected>Full Range</option>
                 <option value="soft_tissue">Soft Tissue</option>
@@ -422,6 +431,16 @@
               <div class="test-info-value" id="testDataSize">—</div>
               <div class="test-info-label">Value range</div>
               <div class="test-info-value" id="testDataRange">—</div>
+            </div>
+
+            <div class="analytics-info" id="analyticsInfo" style="display:none">
+               <div class="test-info-label">Discrepancy (ΔE_n - ΔE_cvd)</div>
+               <div class="analytics-stats">
+                 <div>Max: <span id="statMax">—</span></div>
+                 <div>Min: <span id="statMin">—</span></div>
+                 <div>Avg: <span id="statAvg">—</span></div>
+                 <div>Var: <span id="statVar">—</span></div>
+               </div>
             </div>
 
             <!-- Data Attribution (shown for CT images) -->
@@ -462,6 +481,25 @@
               </div>
             </div>
 
+            <!-- Analytic View (CVD Consistency) -->
+            <div class="test-vis-grid" id="testAnalyticGrid" style="display:none">
+              <!-- Normal ΔE -->
+              <div class="test-vis-card">
+                <div class="test-vis-title">Normal Vision ΔE (Gradient)</div>
+                <canvas id="canvasAnalyticNormal" class="test-canvas"></canvas>
+              </div>
+              <!-- CVD ΔE -->
+              <div class="test-vis-card">
+                <div class="test-vis-title">CVD Simulation ΔE (Gradient)</div>
+                <canvas id="canvasAnalyticCVD" class="test-canvas"></canvas>
+              </div>
+              <!-- Discrepancy -->
+              <div class="test-vis-card span-2">
+                <div class="test-vis-title">CVD Discrepancy (Normal ΔE - CVD ΔE)</div>
+                <p class="analytic-hint">Blue: Over-contrasted in CVD. Red: Under-contrasted (loss of detail) in CVD. White: Consistent.</p>
+                <canvas id="canvasAnalyticDiff" class="test-canvas"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </div>
