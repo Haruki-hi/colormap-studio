@@ -33,7 +33,7 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 body {
@@ -75,7 +75,7 @@ body {
 
 .header-sub {
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 1rem;
   margin-top: 0.25rem;
   letter-spacing: 0.03em;
 }
@@ -105,7 +105,7 @@ body {
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font);
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
   border-radius: var(--radius);
   cursor: pointer;
@@ -184,7 +184,7 @@ body {
 }
 
 .control-label {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 0.01em;
@@ -193,7 +193,7 @@ body {
 .control-label .hint {
   font-weight: 400;
   text-transform: none;
-  font-size: 0.7rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
 }
 
@@ -204,7 +204,7 @@ body {
   min-width: 1.4rem;
   height: 1.2rem;
   padding: 0 0.35rem;
-  font-size: 0.7rem;
+  font-size: 0.92rem;
   font-weight: 600;
   background: var(--accent);
   color: #fff;
@@ -228,7 +228,7 @@ body {
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font);
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 500;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -292,7 +292,7 @@ body {
   display: inline-block;
   padding: 0.35rem 0.7rem;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   font-weight: 600;
   border: 1.5px solid var(--border);
   color: var(--text-muted);
@@ -326,7 +326,7 @@ body {
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: var(--font);
-  font-size: 0.8rem;
+  font-size: 0.97rem;
   font-weight: 500;
   outline: none;
   cursor: pointer;
@@ -381,7 +381,7 @@ body {
 }
 
 .param-row label {
-  font-size: 0.68rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 500;
 }
@@ -394,7 +394,7 @@ body {
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: var(--font);
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   outline: none;
   transition: var(--transition);
 }
@@ -464,7 +464,7 @@ body {
 .progress-text {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
 }
 
@@ -528,14 +528,14 @@ body {
   position: absolute;
   top: -1px;
   right: 1px;
-  font-size: 0.5rem;
+  font-size: 0.9rem;
   color: #fbbf24;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   z-index: 1;
 }
 
 .color-slot-label {
-  font-size: 0.55rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 600;
 }
@@ -550,7 +550,7 @@ body {
   background: var(--danger);
   color: #fff;
   border: none;
-  font-size: 0.5rem;
+  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
   display: none;
@@ -691,7 +691,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
-  font-size: 0.85rem;
+  font-size: 1rem;
 }
 
 .picker-close {
@@ -724,7 +724,7 @@ body {
 }
 
 .picker-col label {
-  font-size: 0.68rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 600;
   text-align: center;
@@ -739,7 +739,7 @@ body {
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   font-family: var(--font);
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   outline: none;
   transition: var(--transition);
 }
@@ -756,7 +756,7 @@ body {
   background: var(--accent);
   color: #fff;
   font-family: var(--font);
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
@@ -769,6 +769,12 @@ body {
 /* ===== Colormap Bar ===== */
 .colormap-bar {
   width: 100%;
+  /* Fixed height so the box size never depends on the canvas's default
+     300×H intrinsic aspect ratio (which would otherwise make the auto
+     height vary with the container width, since the element has no
+     `width` attribute). This is what keeps the main preview and the
+     CVD simulation bars exactly the same height. */
+  height: 30px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
 }
@@ -776,7 +782,7 @@ body {
 .colormap-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   padding: 0 2px;
 }
@@ -799,7 +805,7 @@ body {
 }
 
 .score-label {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -828,7 +834,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 2px;
 }
@@ -864,13 +870,13 @@ body {
 }
 
 .export-item-label {
-  font-size: 0.68rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
 .export-format-select {
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   padding: 0.35rem 0.5rem;
 }
 
@@ -889,7 +895,7 @@ body {
   background: var(--bg-secondary);
   color: var(--text-secondary);
   font-family: var(--font);
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
@@ -934,13 +940,13 @@ body {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 0.78rem;
+  font-size: 0.95rem;
 }
 
 .test-info-label {
   color: var(--text-muted);
   font-weight: 600;
-  font-size: 0.68rem;
+  font-size: 0.9rem;
 }
 
 .test-info-value {
@@ -968,7 +974,7 @@ body {
 }
 
 .tooltip-text {
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   color: var(--text-primary);
   font-family: 'Courier New', monospace;
 }
@@ -1008,7 +1014,7 @@ body {
 }
 
 .test-vis-title {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 0.01em;
@@ -1053,7 +1059,7 @@ body {
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font);
-  font-size: 0.8rem;
+  font-size: 0.97rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -1162,7 +1168,7 @@ body {
 }
 
 .tutorial-caption {
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
   margin-top: 0.5rem;
   margin-bottom: 0 !important;
@@ -1196,13 +1202,13 @@ body {
 }
 
 .cvd-type-card h4 {
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.3rem;
 }
 
 .cvd-type-card p {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 0;
@@ -1235,7 +1241,7 @@ body {
 }
 
 .cvd-demo-label {
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -1262,7 +1268,7 @@ body {
 
 .formula-card code {
   font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: #c084fc;
 }
 
@@ -1275,13 +1281,13 @@ body {
 }
 
 .math-display sub {
-  font-size: 0.65em;
+  font-size: 0.75em;
   font-style: normal;
 }
 
 .math-note {
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: 0.82rem;
+  font-size: 0.97rem;
   font-style: italic;
   color: var(--text-muted);
   margin-top: 0.3rem;
@@ -1289,7 +1295,7 @@ body {
 }
 
 .math-note sub {
-  font-size: 0.65em;
+  font-size: 0.75em;
   font-style: normal;
 }
 
@@ -1298,7 +1304,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin: 0.75rem 0;
-  font-size: 0.82rem;
+  font-size: 0.97rem;
 }
 
 .param-table thead tr {
@@ -1355,13 +1361,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .sa-step-text {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--text-primary);
   line-height: 1.5;
   padding-top: 0.2rem;
@@ -1413,7 +1419,7 @@ body {
 }
 
 .guide-step-content p {
-  font-size: 0.82rem;
+  font-size: 0.97rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 0;
@@ -1439,7 +1445,7 @@ body {
 }
 
 .ct-slider-label {
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-muted);
   display: flex;
@@ -1449,7 +1455,7 @@ body {
 
 .ct-slider-label span {
   color: var(--text-primary);
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   font-weight: 700;
   background: linear-gradient(135deg, #6366f1, #ec4899);
   -webkit-background-clip: text;
@@ -1465,12 +1471,12 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.6rem 0.8rem;
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   animation: fadeIn 0.25s ease;
 }
 
 .attribution-title {
-  font-size: 0.68rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.01em;
@@ -1500,7 +1506,7 @@ body {
   border: 1px solid rgba(34, 197, 94, 0.3);
   border-radius: 99px;
   color: #4ade80;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1527,7 +1533,7 @@ body {
 }
 
 .lab-traj-title {
-  font-size: 0.68rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.01em;
@@ -1587,7 +1593,7 @@ body {
 }
 
 .gallery-title-area p {
-  font-size: 0.8rem;
+  font-size: 0.97rem;
   color: var(--text-secondary);
 }
 
@@ -1650,7 +1656,7 @@ body {
 
 .gallery-card-title {
   padding: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-align: center;
@@ -1689,7 +1695,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.97rem;
   font-weight: 600;
   font-family: var(--font);
   cursor: pointer;
@@ -1725,7 +1731,7 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
   margin-top: 0.4rem;
-  font-size: 0.75rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
 }
 
@@ -1736,7 +1742,7 @@ body {
 }
 
 .analytic-hint {
-  font-size: 0.7rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 0.4rem;
@@ -1777,7 +1783,7 @@ body {
 }
 
 .compare-label {
-  font-size: 0.8rem;
+  font-size: 0.97rem;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 0.03em;
@@ -1787,7 +1793,7 @@ body {
   display: inline-block;
   padding: 0.15rem 0.6rem;
   border-radius: 99px;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -1814,7 +1820,7 @@ body {
   border: 1px solid rgba(99, 102, 241, 0.35);
   border-left: 3px solid var(--accent);
   border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -1858,7 +1864,7 @@ body {
 }
 
 .analytic-card-title {
-  font-size: 0.82rem;
+  font-size: 0.97rem;
   font-weight: 700;
   color: #a5b4fc;
   margin-bottom: 0.35rem;
@@ -1870,7 +1876,7 @@ body {
   display: inline-block;
   padding: 0.1rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.72rem;
+  font-size: 0.92rem;
   font-weight: 700;
   margin-right: 0.2rem;
 }

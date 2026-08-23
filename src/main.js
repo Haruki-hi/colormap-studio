@@ -590,11 +590,17 @@ function renderColormapPreview() {
 
 function clearCanvas(canvas) {
   const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  // Box size (CSS width/height, e.g. via .colormap-bar) is owned by the
+  // stylesheet, not by this function. Reading clientWidth/clientHeight and
+  // writing them back to canvas.style would shrink the box by the border
+  // width on every redraw (clientHeight excludes the border, but style.height
+  // sets the border-box total) — so only the raster buffer is resized here.
   const w = canvas.clientWidth || 280;
   const h = canvas.clientHeight || parseInt(canvas.getAttribute('height')) || 40;
-  canvas.width = w * window.devicePixelRatio;
-  canvas.height = h * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  ctx.scale(dpr, dpr);
   ctx.fillStyle = '#1c1c30';
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
@@ -605,11 +611,17 @@ function clearCanvas(canvas) {
 
 function drawColormapBar(canvas, interp) {
   const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  // Box size (CSS width/height, e.g. via .colormap-bar) is owned by the
+  // stylesheet, not by this function. Reading clientWidth/clientHeight and
+  // writing them back to canvas.style would shrink the box by the border
+  // width on every redraw (clientHeight excludes the border, but style.height
+  // sets the border-box total) — so only the raster buffer is resized here.
   const w = canvas.clientWidth || 280;
   const h = canvas.clientHeight || parseInt(canvas.getAttribute('height')) || 40;
-  canvas.width = w * window.devicePixelRatio;
-  canvas.height = h * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  ctx.scale(dpr, dpr);
 
   for (let x = 0; x < w; x++) {
     const i = Math.min(Math.floor(x / w * 256), 255);
