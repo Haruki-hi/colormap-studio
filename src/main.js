@@ -534,6 +534,11 @@ function applyCurrentPicker() {
   renderAll();
 }
 
+function applyCurrentPickerAndClose() {
+  applyCurrentPicker();
+  hidePicker();
+}
+
 function applyPickerRGB() {
   const idx = state.selectedSlot;
   if (idx < 0) return;
@@ -1374,7 +1379,7 @@ function initEvents() {
   $('#pickerBackdrop').addEventListener('click', hidePicker);
 
   // Apply button
-  $('#btnApplyColor').addEventListener('click', applyCurrentPicker);
+  $('#btnApplyColor').addEventListener('click', applyCurrentPickerAndClose);
 
   // Lab inputs → apply on change/enter
   ['#pickerL', '#pickerA', '#pickerB'].forEach(sel => {
