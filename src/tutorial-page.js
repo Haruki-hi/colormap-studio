@@ -180,51 +180,57 @@ const CONTENT = {
         icon: '📖',
         title: '使い方ガイド',
         body: `
+          <p>以下の手順どおりに進めれば、専門知識がなくても色覚の多様性に配慮したカラーマップを作成できます。難しく感じる場合は、まず「Preset colormap」から既存の配色を選んで「Optimize」を押すだけでも十分実用的な結果になります。</p>
           <div class="guide-steps">
             <div class="guide-step">
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
-                <h4>プリセットを選択する</h4>
-                <p>Generator ページの左パネルから、ベースとなるカラーマップを選択します。または「Custom」を選んで独自のカラーマップを作成できます。</p>
+                <h4>ベースとなる配色を選ぶ</h4>
+                <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">2</div>
               <div class="guide-step-content">
-                <h4>制御点を編集する</h4>
-                <p>16 スロットのカラーストリップで色を編集できます。スロットをクリックすると a*-b* 色域ピッカーが開きます。右クリックでプリファレンス（★）のオン/オフを切り替えます。</p>
-                <p><strong>⚠️ 両端のスロット（0番と15番）は必ず色を設定してください。</strong> これらはカラーマップの開始色と終了色を決める重要な端点です。</p>
+                <h4>使いたい色を選んで置く</h4>
+                <p>画面中央に並ぶ 16 個の四角（カラーストリップ）は、グラデーションが通過していく色の「目印」です。四角をクリックすると色選択パネルが開くので、色域図をクリックするか、L*a*b* または RGB の数値を入力して色を決め、「Apply」を押すと確定してパネルが閉じます。</p>
+                <p><strong>すべての四角に色を置く必要はありません。</strong>色を置いた四角どうしの間は自動的につながる（グラデーションで補間される）ので、こだわりたい色だけを選べば十分です。置いた色を取り消したいときは、四角の右上に出る「✕」を押してください。四角を右クリックすると付く★マークは、「自分が意図して選んだ色」であることを示す目印です。</p>
+                <p><strong>⚠️ ただし両端（0 番と 15 番）だけは必ず色を決めてください。</strong> ここがグラデーションの始まりと終わりになるため、最適化を開始するための必須条件です。</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">3</div>
               <div class="guide-step-content">
-                <h4>CVD タイプを設定する</h4>
-                <p>考慮したい CVD タイプ（P型/D型/T型）のチェックボックスをオンにします。プレビューバーでシミュレーション結果を確認できます。</p>
+                <h4>配慮したい見え方（CVD タイプ）を選ぶ</h4>
+                <p>人によって色の感じ方は異なります。「CVD types」のチェックボックスで、配慮したいタイプ（P型・D型・T型。詳しくは上の「色覚の多様性（CVD）」の章を参照）にチェックを入れてください。迷った場合は、比較的人数の多い P型・D型の両方にチェックを入れることをおすすめします。すぐ下のプレビューバーで、それぞれの見え方をその場で確認できます。</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">4</div>
               <div class="guide-step-content">
-                <h4>最適化を実行する</h4>
-                <p>「Optimize」ボタンをクリックすると SA が開始されます。プログレスバーで進捗を確認できます。</p>
-                <p><strong>注意：</strong> 最適化を開始するには、スロット 0（先頭）とスロット 15（末尾）の両方に色が設定されている必要があります。</p>
+                <h4>「Optimize」で自動調整する</h4>
+                <p>「Optimize」ボタンを押すと、自分で選んだ色はできるだけ保ちながら、色を置いていない部分をコンピュータが自動的に調整します。目的は、チェックしたどの CVD タイプで見ても隣どうしの色がきちんと区別できるようにすることです。</p>
+                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 15 番）に色が入っているか確認してください。</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">5</div>
               <div class="guide-step-content">
-                <h4>テストする</h4>
-                <p>Test ページに移動し、生成したカラーマップを実データに適用して可視化します。CVD シミュレーションで見え方を確認しましょう。</p>
+                <h4>Test ページで実際の見え方を確かめる</h4>
+                <p>上部メニューの「Test」タブに移動すると、作成したカラーマップをグラフや画像などさまざまなサンプルデータに当てはめて確認できます。CVD シミュレーションも同時に表示されるので、意図したとおりに区別しやすくなっているか目で確かめましょう。思ったとおりの結果でなければ、Generator ページに戻って色を調整し、再度「Optimize」してみてください。</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">6</div>
               <div class="guide-step-content">
-                <h4>エクスポートする</h4>
-                <p>JSON、PNG、CSV 形式でカラーマップをエクスポートできます。</p>
+                <h4>気に入った配色を保存する</h4>
+                <p>「Export」から、用途に合わせて保存できます。</p>
+                <p><strong>JSON</strong>：他のプログラムやツールに読み込ませるためのデータ形式です。<strong>CSV</strong>：Excel などの表計算ソフトでそのまま開ける数値の一覧です。<strong>PNG</strong>：カラーマップを帯状の画像として保存します。資料やスライドに貼り付けたいときに便利です。</p>
               </div>
             </div>
+          </div>
+          <div class="insight-box">
+            <strong>うまくいかないときは：</strong> 「Optimize」が押せない場合は両端（0 番・15 番）の色が設定されているか確認してください。配色を最初からやり直したい場合は、プリセットを選び直すか「Custom」を選べば全てリセットされます。
           </div>
         `,
       },
@@ -397,51 +403,57 @@ const CONTENT = {
         icon: '📖',
         title: 'How to Use',
         body: `
+          <p>Follow the steps below and you can build a CVD-aware colormap without any prior expertise. If it feels like a lot, the short version is: pick a preset, click "Optimize," and you already have a solid result.</p>
           <div class="guide-steps">
             <div class="guide-step">
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
-                <h4>Select a Preset</h4>
-                <p>Choose a base colormap from the left panel on the Generator page, or select "Custom" to create your own.</p>
+                <h4>Choose a starting colormap</h4>
+                <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in.</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">2</div>
               <div class="guide-step-content">
-                <h4>Edit Control Points</h4>
-                <p>Edit colors in the 16-slot color strip. Click a slot to open the a*-b* gamut picker. Right-click to toggle preference (★).</p>
-                <p><strong>⚠️ Slot 0 (start) and Slot 15 (end) must always be set.</strong> These are the required endpoints that define the start and end colors of the colormap.</p>
+                <h4>Pick the colors you want to use</h4>
+                <p>The 16 squares in the middle of the screen (the color strip) mark the colors your gradient will pass through. Click a square to open the color picker: click anywhere on the gamut wheel, or type in L*a*b* or RGB values, then press "Apply" to confirm — the panel closes automatically.</p>
+                <p><strong>You don't have to fill in every square.</strong> The colors between the squares you do set are filled in automatically by blending, so you only need to specify the colors you actually care about. Click the "✕" that appears in a square's corner to remove a color. Right-clicking a square adds a small ★ mark, which simply flags "this color was chosen deliberately" — it's a visual note for you, not a required step.</p>
+                <p><strong>⚠️ The two end squares (slot 0 and slot 15) are the only ones that must be set.</strong> They define where the gradient starts and ends, and optimization won't start without them.</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">3</div>
               <div class="guide-step-content">
-                <h4>Configure CVD Types</h4>
-                <p>Enable the CVD types (P/D/T) you want to optimize for. Preview bars show simulation results.</p>
+                <h4>Choose which CVD types to account for</h4>
+                <p>People perceive color differently depending on their vision. Under "CVD types," check the type(s) you want the colormap optimized for — P-type, D-type, and/or T-type (see the "Color Vision Deficiency (CVD)" section above for what these mean). If you're not sure, checking both P-type and D-type is a good default, since they're the most common. The preview bars right below update immediately to show how each type would perceive your current colors.</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">4</div>
               <div class="guide-step-content">
-                <h4>Run Optimization</h4>
-                <p>Click "Optimize" to start the SA process. Monitor progress via the progress bar.</p>
-                <p><strong>Note:</strong> Slot 0 and Slot 15 must both be set before optimization can start.</p>
+                <h4>Click "Optimize" to auto-adjust</h4>
+                <p>Clicking "Optimize" keeps the colors you deliberately chose roughly in place while automatically adjusting the colors you left unset. The goal is to make sure adjacent colors stay distinguishable for every CVD type you checked in the previous step.</p>
+                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 15) have colors set.</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">5</div>
               <div class="guide-step-content">
-                <h4>Test Results</h4>
-                <p>Go to the Test page to apply your colormap to real data and visualize the results. Check CVD simulations to verify accessibility.</p>
+                <h4>Check the result on the Test page</h4>
+                <p>Switch to the "Test" tab at the top to see your colormap applied to sample charts and images. A CVD simulation is shown alongside, so you can confirm with your own eyes that the result still reads clearly. If it's not quite what you wanted, go back to the Generator page, tweak a few colors, and run "Optimize" again.</p>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">6</div>
               <div class="guide-step-content">
-                <h4>Export</h4>
-                <p>Export your colormap in JSON, PNG, or CSV format.</p>
+                <h4>Save your colormap</h4>
+                <p>Use "Export" to save the result in the format you need.</p>
+                <p><strong>JSON</strong>: data meant to be loaded by another program or tool. <strong>CSV</strong>: a plain list of numbers you can open directly in Excel or similar spreadsheet software. <strong>PNG</strong>: the colormap saved as a color-bar image, handy for pasting into a document or slide.</p>
               </div>
             </div>
+          </div>
+          <div class="insight-box">
+            <strong>If something isn't working:</strong> If "Optimize" won't respond, check that both end slots (0 and 15) have colors set. To start over completely, re-select a preset or choose "Custom" to reset everything.
           </div>
         `,
       },
