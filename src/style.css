@@ -1782,6 +1782,13 @@ body {
   position: relative;
 }
 
+/* The surrounding .tutorial-figure centers its content, which is fine for
+   the single-line title but turns a multi-line caption into a ragged,
+   zigzag block. Keep captions left-aligned for readability. */
+.compare-item .tutorial-caption {
+  text-align: left;
+}
+
 .compare-label {
   font-size: 0.97rem;
   font-weight: 700;
