@@ -1782,9 +1782,15 @@ body {
   position: relative;
 }
 
-/* The surrounding .tutorial-figure centers its content, which is fine for
-   the single-line title but turns a multi-line caption into a ragged,
-   zigzag block. Keep captions left-aligned for readability. */
+/* The surrounding .tutorial-figure centers its content by default. The
+   badge above (.compare-badge) is a fit-content flex item, so it always
+   sits flush left regardless of that centering — but .compare-label and
+   .tutorial-caption are full-width flex items, so inherited centering
+   pulls their text away from the badge's left edge, making the title and
+   caption look misaligned with the badge (and, for the caption, wrap into
+   a ragged zigzag once it spans two lines). Left-align both to keep a
+   single consistent left edge for badge / title / caption. */
+.compare-item .compare-label,
 .compare-item .tutorial-caption {
   text-align: left;
 }
