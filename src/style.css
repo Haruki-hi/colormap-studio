@@ -51,6 +51,36 @@ body {
   padding: 1.5rem 1.5rem 3rem;
 }
 
+/* ===== Footer ===== */
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.app-footer-sep {
+  opacity: 0.6;
+}
+
+.app-footer-contact {
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--border-hover);
+}
+
+.app-footer-contact:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* ===== Header ===== */
 .header {
   text-align: center;
