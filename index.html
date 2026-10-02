@@ -126,8 +126,12 @@
               <option value="RdYlGn">RdYlGn (Diverging)</option>
               <option value="Spectral">Spectral (Diverging)</option>
               <option value="RdGn">RdGn (Diverging)</option>
+              <option value="upload">Upload colormap (image / CSV)…</option>
+              <option value="uploaded" hidden></option>
               <option value="custom">— Custom —</option>
             </select>
+            <input type="file" id="colormapFile" accept=".png,.jpg,.jpeg,.bmp,.gif,.webp,.ppm,.csv,.txt,image/*,text/csv" hidden />
+            <div class="upload-note" id="uploadNote" hidden></div>
           </div>
 
           <!-- CVD Toggles -->
@@ -475,7 +479,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <span class="app-footer-version">Colormap Studio v1.1</span>
+      <span class="app-footer-version">Colormap Studio v1.2</span>
       <span class="app-footer-sep">·</span>
       <a href="mailto:c257720@ed.nagoya-cu.ac.jp" class="app-footer-contact">Questions / bug reports: c257720@ed.nagoya-cu.ac.jp</a>
     </footer>

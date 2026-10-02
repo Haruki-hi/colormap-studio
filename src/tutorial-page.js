@@ -186,7 +186,7 @@ const CONTENT = {
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
                 <h4>ベースとなる配色を選ぶ</h4>
-                <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。</p>
+                <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。手持ちのカラーマップを高性能化したいときは「Upload colormap (image / CSV)…」を選び、横長のカラーマップ画像（PNG・JPEG・BMP・PPM）か、RGB または L*a*b* の CSV を読み込んでください。そこから 15 色が取り出されて並び、そのまま「Optimize」できます。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -409,7 +409,7 @@ const CONTENT = {
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
                 <h4>Choose a starting colormap</h4>
-                <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in.</p>
+                <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in. If you already have a colormap you want to improve, choose "Upload colormap (image / CSV)…" and load a horizontal colormap image (PNG, JPEG, BMP or PPM) or a CSV of RGB or L*a*b* values; 15 colors are extracted from it and placed in the strip, ready for "Optimize."</p>
               </div>
             </div>
             <div class="guide-step">

@@ -2,6 +2,12 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.2 — 2026-10-02
+
+### Added
+- Upload an existing colormap and improve it: choose "Upload colormap (image / CSV)…" in the preset list and load a horizontal colormap image (PNG, JPEG, BMP, …), a PPM, or a CSV of RGB (0–255 or 0–1) or L\*a\*b\* values. 15 colors are extracted from it with the same strict extraction as the presets and placed in the strip, ready for Optimize
+- CSV column headers (R,G,B or L\*,a\*,b\*) are honored; without a header, negative values mean L\*a\*b\* and everything else is read as RGB
+
 ## v1.1 — 2026-10-02
 
 ### Changed

@@ -12,6 +12,7 @@ import {
 import { interpolateColors, eScore } from './optimizer.js';
 import { initTestPage, renderTestPage } from './test-page.js';
 import { initTutorialPage, renderTutorialPage } from './tutorial-page.js';
+import { loadColormapFile } from './upload.js';
 
 // ===== Constants =====
 const N_SLOTS = 15;
@@ -181,6 +182,21 @@ export function getSharedColormap() {
     if (pts[i]) colors.push({ ...pts[i] });
   }
   return colors.length >= 2 ? colors : null;
+}
+
+// ===== Uploaded colormap (image / PPM / CSV) =====
+// Fill every slot with the N_SLOTS colors extracted from the uploaded file (all slots are
+// specified colors, like a preset), ready for "Optimize".
+function loadPoints(points) {
+  state.optimizedSlots = null;
+  state.selectedSlot = -1;
+  state.prefIndices.clear();
+  for (let i = 0; i < N_SLOTS; i++) {
+    state.slots[i] = { L: points[i].L, a: points[i].a, b: points[i].b };
+    state.prefIndices.add(i);
+  }
+  hidePicker();
+  renderAll();
 }
 
 function loadPreset(name) {
@@ -1367,9 +1383,50 @@ function initRouting() {
 
 // ===== Events =====
 function initEvents() {
-  // Preset selector
-  $('#presetSelect').addEventListener('change', (e) => {
-    loadPreset(e.target.value);
+  // Preset selector. The "Upload" entry opens a file dialog instead of loading a preset.
+  const presetSelect = $('#presetSelect');
+  const colormapFile = $('#colormapFile');
+  const uploadNote = $('#uploadNote');
+  let lastPreset = presetSelect.value;
+  let uploaded = null; // { points, note, name } from the last successful upload
+  const setNote = (text) => { uploadNote.textContent = text; uploadNote.hidden = !text; };
+  const revertPreset = () => { presetSelect.value = lastPreset; };
+
+  presetSelect.addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (v === 'upload') {
+      colormapFile.value = '';
+      colormapFile.click();
+      return;
+    }
+    lastPreset = v;
+    if (v === 'uploaded') {
+      loadPoints(uploaded.points);
+      setNote(uploaded.note);
+    } else {
+      setNote('');
+      loadPreset(v);
+    }
+  });
+
+  colormapFile.addEventListener('cancel', revertPreset);
+  colormapFile.addEventListener('change', async () => {
+    const file = colormapFile.files[0];
+    if (!file) { revertPreset(); return; }
+    try {
+      const { points, note } = await loadColormapFile(file, N_SLOTS);
+      uploaded = { points, note, name: file.name };
+      const opt = presetSelect.querySelector('option[value="uploaded"]');
+      opt.textContent = `Uploaded: ${file.name}`;
+      opt.hidden = false;
+      presetSelect.value = 'uploaded';
+      lastPreset = 'uploaded';
+      loadPoints(points);
+      setNote(note);
+    } catch (err) {
+      alert(err.message);
+      revertPreset();
+    }
   });
 
   // CVD toggles
