@@ -193,9 +193,9 @@ const CONTENT = {
               <div class="guide-step-icon">2</div>
               <div class="guide-step-content">
                 <h4>使いたい色を選んで置く</h4>
-                <p>画面中央に並ぶ 16 個の四角（カラーストリップ）は、グラデーションが通過していく色の「目印」です。四角をクリックすると色選択パネルが開くので、色域図をクリックするか、L*a*b* または RGB の数値を入力して色を決め、「Apply」を押すと確定してパネルが閉じます。</p>
+                <p>画面中央に並ぶ 15 個の四角（カラーストリップ）は、グラデーションが通過していく色の「目印」です。四角をクリックすると色選択パネルが開くので、色域図をクリックするか、L*a*b* または RGB の数値を入力して色を決め、「Apply」を押すと確定してパネルが閉じます。</p>
                 <p><strong>すべての四角に色を置く必要はありません。</strong>色を置いた四角どうしの間は自動的につながる（グラデーションで補間される）ので、こだわりたい色だけを選べば十分です。置いた色を取り消したいときは、四角の右上に出る「✕」を押してください。四角を右クリックすると付く★マークは、「自分が意図して選んだ色」であることを示す目印です。</p>
-                <p><strong>⚠️ ただし両端（0 番と 15 番）だけは必ず色を決めてください。</strong> ここがグラデーションの始まりと終わりになるため、最適化を開始するための必須条件です。</p>
+                <p><strong>⚠️ ただし両端（0 番と 14 番）だけは必ず色を決めてください。</strong> ここがグラデーションの始まりと終わりになるため、最適化を開始するための必須条件です。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -210,7 +210,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>「Optimize」で自動調整する</h4>
                 <p>「Optimize」ボタンを押すと、自分で選んだ色はできるだけ保ちながら、色を置いていない部分をコンピュータが自動的に調整します。目的は、チェックしたどの CVD タイプで見ても隣どうしの色がきちんと区別できるようにすることです。</p>
-                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 15 番）に色が入っているか確認してください。</p>
+                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -230,7 +230,7 @@ const CONTENT = {
             </div>
           </div>
           <div class="insight-box">
-            <strong>うまくいかないときは：</strong> 「Optimize」が押せない場合は両端（0 番・15 番）の色が設定されているか確認してください。配色を最初からやり直したい場合は、プリセットを選び直すか「Custom」を選べば全てリセットされます。
+            <strong>うまくいかないときは：</strong> 「Optimize」が押せない場合は両端（0 番・14 番）の色が設定されているか確認してください。配色を最初からやり直したい場合は、プリセットを選び直すか「Custom」を選べば全てリセットされます。
           </div>
         `,
       },
@@ -416,9 +416,9 @@ const CONTENT = {
               <div class="guide-step-icon">2</div>
               <div class="guide-step-content">
                 <h4>Pick the colors you want to use</h4>
-                <p>The 16 squares in the middle of the screen (the color strip) mark the colors your gradient will pass through. Click a square to open the color picker: click anywhere on the gamut wheel, or type in L*a*b* or RGB values, then press "Apply" to confirm — the panel closes automatically.</p>
+                <p>The 15 squares in the middle of the screen (the color strip) mark the colors your gradient will pass through. Click a square to open the color picker: click anywhere on the gamut wheel, or type in L*a*b* or RGB values, then press "Apply" to confirm — the panel closes automatically.</p>
                 <p><strong>You don't have to fill in every square.</strong> The colors between the squares you do set are filled in automatically by blending, so you only need to specify the colors you actually care about. Click the "✕" that appears in a square's corner to remove a color. Right-clicking a square adds a small ★ mark, which simply flags "this color was chosen deliberately" — it's a visual note for you, not a required step.</p>
-                <p><strong>⚠️ The two end squares (slot 0 and slot 15) are the only ones that must be set.</strong> They define where the gradient starts and ends, and optimization won't start without them.</p>
+                <p><strong>⚠️ The two end squares (slot 0 and slot 14) are the only ones that must be set.</strong> They define where the gradient starts and ends, and optimization won't start without them.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -433,7 +433,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Click "Optimize" to auto-adjust</h4>
                 <p>Clicking "Optimize" keeps the colors you deliberately chose roughly in place while automatically adjusting the colors you left unset. The goal is to make sure adjacent colors stay distinguishable for every CVD type you checked in the previous step.</p>
-                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 15) have colors set.</p>
+                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -453,7 +453,7 @@ const CONTENT = {
             </div>
           </div>
           <div class="insight-box">
-            <strong>If something isn't working:</strong> If "Optimize" won't respond, check that both end slots (0 and 15) have colors set. To start over completely, re-select a preset or choose "Custom" to reset everything.
+            <strong>If something isn't working:</strong> If "Optimize" won't respond, check that both end slots (0 and 14) have colors set. To start over completely, re-select a preset or choose "Custom" to reset everything.
           </div>
         `,
       },
