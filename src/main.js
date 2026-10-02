@@ -755,20 +755,20 @@ function renderStats() {
   detailsEl.style.display = 'grid';
   
   let html = '';
-  html += `<div class="score-detail-item"><span class="score-detail-label">UN (Uniformity N):</span> <span class="score-detail-value">${d.eu.toFixed(4)}</span></div>`;
+  html += `<div class="score-detail-item"><span class="score-detail-label">UN′ (Uniformity N):</span> <span class="score-detail-value">${(d.eu * 100).toFixed(1)}</span></div>`;
   if (params.UP) {
-    html += `<div class="score-detail-item"><span class="score-detail-label">UP (Uniformity P):</span> <span class="score-detail-value">${d.euP.toFixed(4)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QP (Contrast P):</span> <span class="score-detail-value">${d.ePPsi.toFixed(4)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">UP′ (Uniformity P):</span> <span class="score-detail-value">${(d.euP * 100).toFixed(1)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">QP′ (Contrast P):</span> <span class="score-detail-value">${(d.ePPsi * 1000).toFixed(1)}</span></div>`;
   }
   if (params.UD) {
-    html += `<div class="score-detail-item"><span class="score-detail-label">UD (Uniformity D):</span> <span class="score-detail-value">${d.euD.toFixed(4)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QD (Contrast D):</span> <span class="score-detail-value">${d.eDPsi.toFixed(4)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">UD′ (Uniformity D):</span> <span class="score-detail-value">${(d.euD * 100).toFixed(1)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">QD′ (Contrast D):</span> <span class="score-detail-value">${(d.eDPsi * 1000).toFixed(1)}</span></div>`;
   }
   if (params.UT) {
-    html += `<div class="score-detail-item"><span class="score-detail-label">UT (Uniformity T):</span> <span class="score-detail-value">${d.euT.toFixed(4)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QT (Contrast T):</span> <span class="score-detail-value">${d.eTPsi.toFixed(4)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">UT′ (Uniformity T):</span> <span class="score-detail-value">${(d.euT * 100).toFixed(1)}</span></div>`;
+    html += `<div class="score-detail-item"><span class="score-detail-label">QT′ (Contrast T):</span> <span class="score-detail-value">${(d.eTPsi * 1000).toFixed(1)}</span></div>`;
   }
-  html += `<div class="score-detail-item"><span class="score-detail-label">S (Smoothness):</span> <span class="score-detail-value">${d.es.toFixed(4)}</span></div>`;
+  html += `<div class="score-detail-item"><span class="score-detail-label">S′ (Smoothness):</span> <span class="score-detail-value">${(d.es * 1000).toFixed(1)}</span></div>`;
   
   detailsEl.innerHTML = html;
 }
@@ -1171,20 +1171,20 @@ function startOptimization() {
         detailsEl.style.display = 'grid';
         
         let html = '';
-        html += `<div class="score-detail-item"><span class="score-detail-label">UN (Uniformity N):</span> <span class="score-detail-value">${d.eu.toFixed(4)}</span></div>`;
+        html += `<div class="score-detail-item"><span class="score-detail-label">UN′ (Uniformity N):</span> <span class="score-detail-value">${(d.eu * 100).toFixed(1)}</span></div>`;
         if (params.UP) {
-          html += `<div class="score-detail-item"><span class="score-detail-label">UP (Uniformity P):</span> <span class="score-detail-value">${d.euP.toFixed(4)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QP (Contrast P):</span> <span class="score-detail-value">${d.ePPsi.toFixed(4)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">UP′ (Uniformity P):</span> <span class="score-detail-value">${(d.euP * 100).toFixed(1)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">QP′ (Contrast P):</span> <span class="score-detail-value">${(d.ePPsi * 1000).toFixed(1)}</span></div>`;
         }
         if (params.UD) {
-          html += `<div class="score-detail-item"><span class="score-detail-label">UD (Uniformity D):</span> <span class="score-detail-value">${d.euD.toFixed(4)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QD (Contrast D):</span> <span class="score-detail-value">${d.eDPsi.toFixed(4)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">UD′ (Uniformity D):</span> <span class="score-detail-value">${(d.euD * 100).toFixed(1)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">QD′ (Contrast D):</span> <span class="score-detail-value">${(d.eDPsi * 1000).toFixed(1)}</span></div>`;
         }
         if (params.UT) {
-          html += `<div class="score-detail-item"><span class="score-detail-label">UT (Uniformity T):</span> <span class="score-detail-value">${d.euT.toFixed(4)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QT (Contrast T):</span> <span class="score-detail-value">${d.eTPsi.toFixed(4)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">UT′ (Uniformity T):</span> <span class="score-detail-value">${(d.euT * 100).toFixed(1)}</span></div>`;
+          html += `<div class="score-detail-item"><span class="score-detail-label">QT′ (Contrast T):</span> <span class="score-detail-value">${(d.eTPsi * 1000).toFixed(1)}</span></div>`;
         }
-        html += `<div class="score-detail-item"><span class="score-detail-label">S (Smoothness):</span> <span class="score-detail-value">${d.es.toFixed(4)}</span></div>`;
+        html += `<div class="score-detail-item"><span class="score-detail-label">S′ (Smoothness):</span> <span class="score-detail-value">${(d.es * 1000).toFixed(1)}</span></div>`;
         
         detailsEl.innerHTML = html;
       }

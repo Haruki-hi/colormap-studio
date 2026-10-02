@@ -210,7 +210,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>「Optimize」で自動調整する</h4>
                 <p>「Optimize」ボタンを押すと、自分で選んだ色はできるだけ保ちながら、色を置いていない部分をコンピュータが自動的に調整します。目的は、チェックしたどの CVD タイプで見ても隣どうしの色がきちんと区別できるようにすることです。</p>
-                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
+                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。あわせて表示される U′・Q′・S′ は、均等性 U を 100 倍、コントラスト Q と滑らかさ S を 1000 倍した値です（いずれも小さいほど良い）。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -433,7 +433,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Click "Optimize" to auto-adjust</h4>
                 <p>Clicking "Optimize" keeps the colors you deliberately chose roughly in place while automatically adjusting the colors you left unset. The goal is to make sure adjacent colors stay distinguishable for every CVD type you checked in the previous step.</p>
-                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
+                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). The U′, Q′ and S′ values shown alongside are the uniformity U multiplied by 100 and the contrast Q and smoothness S multiplied by 1000 (lower is better for all of them). This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
               </div>
             </div>
             <div class="guide-step">
