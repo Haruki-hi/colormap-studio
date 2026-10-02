@@ -2,6 +2,16 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.1 — 2026-10-02
+
+### Changed
+- The color strip now has 15 slots instead of 16. An odd count puts slot 7 exactly at the center color of a diverging colormap. The two required endpoints are now slots 0 and 14, and the strip fills the full width like the preview bar below it
+- Presets are re-extracted from the reference 256-color maps with strict extraction (positions i·(w−1)/(n−1), linear interpolation), the same as the research code
+- The score shown for the generated colormap, before and after generation, is now evaluated on the 256-color colormap sub-sampled at indices 0, 8, …, 248 plus the last point 255 (33 points) instead of on the representative colors. The formula, CVD types and weights are unchanged; the optimization objective itself is unchanged
+
+### Removed
+- The Leaf_NASA preset
+
 ## v1.0 — 2026-09-13
 
 Initial public release.
