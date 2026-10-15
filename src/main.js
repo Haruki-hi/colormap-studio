@@ -202,7 +202,7 @@ export function getSharedColormap() {
 // ===== Uploaded colormap (image / PPM / CSV) =====
 // Fill every slot with the N_SLOTS colors extracted from the uploaded file (all slots are
 // specified colors, like a preset), ready for "Optimize".
-function loadPoints(points) {
+function loadPoints(points, lab256 = null) {
   state.optimizedSlots = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
@@ -210,6 +210,11 @@ function loadPoints(points) {
   for (let i = 0; i < N_SLOTS; i++) {
     state.slots[i] = { L: points[i].L, a: points[i].a, b: points[i].b };
     state.prefIndices.add(i);
+  }
+  // Uniformity: remember the original colormap, so that its own score can be shown before generation
+  if (lab256) {
+    state.reference = lab256;
+    state.initialPoints = points.map(q => ({ L: q.L, a: q.a, b: q.b }));
   }
   hidePicker();
   renderAll();
@@ -233,6 +238,11 @@ function loadPreset(name) {
     for (let i = 0; i < N_SLOTS; i++) {
       state.slots[i] = { L: data[i][0], a: data[i][1], b: data[i][2] };
       state.prefIndices.add(i);
+    }
+    const rgb = decodeColormap256(name);
+    if (rgb) {
+      state.reference = lab256FromEntries(rgb, 'rgb');
+      state.initialPoints = state.slots.map(q => ({ L: q.L, a: q.a, b: q.b }));
     }
   }
   hidePicker();
@@ -357,7 +367,7 @@ function loadSelected(v) {
       loadLab256(lab256FromEntries(uploaded.entries, uploaded.space));
       setUploadNote(`${uploaded.info} → ${N_SLOTS} colors (equal color-difference steps)`);
     } else {
-      loadPoints(extractPoints(uploaded.entries, N_SLOTS, uploaded.space));
+      loadPoints(extractPoints(uploaded.entries, N_SLOTS, uploaded.space), lab256FromEntries(uploaded.entries, uploaded.space));
       setUploadNote(`${uploaded.info} → ${N_SLOTS} colors`);
     }
     return;
@@ -905,12 +915,13 @@ function evalScoreGap(fullLs, fullAs, fullBs, params, returnDetails = false) {
 }
 
 // Breakdown of the score: U′ = 100·U, F′ = 100·F, Q′ and S′ = 1000·Q, 1000·S
-// Consistency, before anything is generated or edited: the colormap in the strip is the original,
-// so the score shown is the ORIGINAL 256-color colormap's own (F̂ = 0 by definition) — the same
-// "existing colormap" value the research evaluator gives. Once a color is edited or a colormap is
-// generated, the colormap being scored is the 15-color reconstruction instead.
+// Before anything is generated or edited, the colormap in the strip is the original (a preset or an
+// upload), so the score shown is the ORIGINAL 256-color colormap's own — the same "existing colormap"
+// value the research evaluator gives (for Consistency F̂ = 0 by definition). Once a color is edited or
+// a colormap is generated, the colormap being scored is the 15-color reconstruction instead. Custom
+// has no original, so it is always the 15-color colormap.
 function isOriginalUnmodified() {
-  if (state.mode !== 'consistency' || !state.reference || !state.initialPoints || state.optimizedSlots) return false;
+  if (!state.reference || !state.initialPoints || state.optimizedSlots) return false;
   for (let i = 0; i < N_SLOTS; i++) {
     const s = state.slots[i], q = state.initialPoints[i];
     if (!s || Math.abs(s.L - q.L) > 1e-9 || Math.abs(s.a - q.a) > 1e-9 || Math.abs(s.b - q.b) > 1e-9) return false;

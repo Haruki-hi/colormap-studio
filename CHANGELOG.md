@@ -2,6 +2,11 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.3.2 — 2026-10-15
+
+### Changed
+- Uniformity now behaves like Consistency before generation: while a preset or an uploaded colormap is shown unmodified, the score is the **original 256-color colormap's own** (the research evaluator's "existing colormap" value), with the heading "E · Uniformity (original colormap)". After a color is edited or a colormap is generated the 15-color colormap is scored, as before. Custom has no original, so it always scores the 15-color colormap
+
 ## v1.3.1 — 2026-10-15
 
 ### Fixed
