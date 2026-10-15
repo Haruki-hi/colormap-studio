@@ -7,6 +7,8 @@ import {
   calculateCIEDE2000
 } from './colormath.js';
 import { interpolateColors, interpolateColorsByIndex } from './optimizer.js';
+import { decodeColormap256 } from './colormaps256.js';
+import { lab256FromEntries } from './consistency.js';
 let _getSharedColormap = () => null;
 let _PRESETS = {};
 
@@ -122,7 +124,18 @@ function generateProceduralData(id) {
 }
 
 // ===== Colormap Build =====
+// Research maps (used by the Consistency method): the original 256 colors are used as they are
+const RESEARCH_MAPS = ['ds9_a', 'ds9_b', 'earth', 'drywet', 'world', 'seis'];
+
 function buildColormapLUT(colormapName) {
+  if (RESEARCH_MAPS.includes(colormapName)) {
+    const rgb = decodeColormap256(colormapName);
+    const lab = lab256FromEntries(rgb, 'rgb');
+    return {
+      lut: rgb.map(c => [c[0], c[1], c[2]]),
+      interp: { ls: Float64Array.from(lab, l => l[0]), as: Float64Array.from(lab, l => l[1]), bs: Float64Array.from(lab, l => l[2]) },
+    };
+  }
   let ls, as, bs, n, positions = null;
   if (colormapName === 'current') {
     const shared = _getSharedColormap();

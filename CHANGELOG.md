@@ -2,6 +2,11 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.3.3 — 2026-10-15
+
+### Fixed
+- Test tab: the research maps used by Consistency (ds9_a, ds9_b, Earth, Drywet, World, Seis) can now be chosen in the colormap selectors of both the gallery and the detail view; they are drawn from their original 256 colors
+
 ## v1.3.2 — 2026-10-15
 
 ### Changed
