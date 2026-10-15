@@ -382,6 +382,35 @@ body {
   color: var(--text-primary);
 }
 
+/* ===== Method (Uniformity / Consistency) ===== */
+.method-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.panel-controls {
+  border-top: 3px solid var(--accent);
+}
+
+body[data-mode="consistency"] .panel-controls {
+  border-top-color: var(--accent-secondary);
+}
+
+body[data-mode="consistency"] #methodToggle .toggle-btn.active {
+  background: var(--accent-secondary);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+}
+
+body[data-mode="consistency"] #scoreDisplay .score-label {
+  color: var(--accent-secondary);
+}
+
+/* Consistency starts from an existing colormap: all slots stay filled */
+.color-strip.locked .color-slot-clear {
+  display: none !important;
+}
+
 .upload-note {
   font-size: 0.9rem;
   color: var(--text-muted);

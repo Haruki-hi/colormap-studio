@@ -9,10 +9,12 @@ import {
   simTBrettel,
   judgeInout,
 } from './colormath.js';
-import { interpolateColors, eScore } from './optimizer.js';
+import { interpolateColors, interpolateColorsByIndex, eScore } from './optimizer.js';
 import { initTestPage, renderTestPage } from './test-page.js';
 import { initTutorialPage, renderTutorialPage } from './tutorial-page.js';
-import { loadColormapFile } from './upload.js';
+import { readColormapFile, extractPoints } from './upload.js';
+import { decodeColormap256 } from './colormaps256.js';
+import { lab256FromEntries, arcLengthExtract, adjacentDeltaE, gapIndices } from './consistency.js';
 
 // ===== Constants =====
 const N_SLOTS = 15;
@@ -28,6 +30,13 @@ const state = {
   optimizedSlots: null,
   worker: null,
   currentPage: 'generator',
+  // Method: 'uniform' (Uniformity) or 'consistency' (Consistency)
+  mode: 'uniform',
+  // Consistency only: position (0-255) of each representative color on the 256-color strip, the
+  // original colormap as 256 [L, a, b], and the adjacent dE of the original representative colors
+  positions: null,
+  reference: null,
+  refAdj: null,
 };
 
 // ===== DOM =====
@@ -181,7 +190,12 @@ export function getSharedColormap() {
   for (let i = 0; i < N_SLOTS; i++) {
     if (pts[i]) colors.push({ ...pts[i] });
   }
-  return colors.length >= 2 ? colors : null;
+  if (colors.length < 2) return null;
+  // Consistency colormaps are not evenly spaced: hand the positions to the Test page as well
+  if (state.mode === 'consistency' && state.positions && colors.length === N_SLOTS) {
+    colors.positions = state.positions.slice();
+  }
+  return colors;
 }
 
 // ===== Uploaded colormap (image / PPM / CSV) =====
@@ -191,6 +205,7 @@ function loadPoints(points) {
   state.optimizedSlots = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
+  state.positions = null; state.reference = null; state.refAdj = null;
   for (let i = 0; i < N_SLOTS; i++) {
     state.slots[i] = { L: points[i].L, a: points[i].a, b: points[i].b };
     state.prefIndices.add(i);
@@ -203,6 +218,7 @@ function loadPreset(name) {
   state.optimizedSlots = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
+  state.positions = null; state.reference = null; state.refAdj = null;
   if (name === 'custom') {
     for (let i = 0; i < N_SLOTS; i++) state.slots[i] = null;
     // sRGB red (255,0,0) and blue (0,0,255) in CIE L*a*b*
@@ -220,6 +236,160 @@ function loadPreset(name) {
   }
   hidePicker();
   renderAll();
+}
+
+// ===== Method: Uniformity / Consistency =====
+// Uniformity equalizes the color difference between neighbouring colors. Consistency keeps the
+// original colormap's own pattern of color differences (e.g. a deliberately larger step between
+// sea and land) and makes it robust for CVD; it starts from an existing colormap.
+const MODE_INFO = {
+  uniform: {
+    name: 'Uniformity',
+    desc: 'Makes the color difference between neighboring colors as equal as possible, so that every step of the colormap looks even.',
+    scoreLabel: 'E · Uniformity',
+    w1Label: 'u_WEIGHT',
+  },
+  consistency: {
+    name: 'Consistency',
+    desc: "Keeps the original colormap's own pattern of color differences (for example a deliberately larger step between sea and land) while making it hold up for CVD. Choose an existing colormap or upload one.",
+    scoreLabel: 'E · Consistency',
+    w1Label: 'f_WEIGHT',
+  },
+};
+const MODE_DEFAULTS = { uniform: { w1: 0.1, q: 0.7 }, consistency: { w1: 0.1, q: 0.8 } };
+const MODE_WEIGHTS = { uniform: { ...MODE_DEFAULTS.uniform }, consistency: { ...MODE_DEFAULTS.consistency } };
+const DEFAULT_PRESET = { uniform: 'turbo', consistency: 'ds9_a' };
+const STANDARD_PRESETS = [
+  ['turbo', 'Turbo'], ['plasma', 'Plasma'], ['viridis', 'Viridis'], ['afmhot', 'Afmhot'], ['jet', 'Jet'],
+  ['RdYlGn', 'RdYlGn (Diverging)'], ['Spectral', 'Spectral (Diverging)'], ['RdGn', 'RdGn (Diverging)'],
+];
+const RESEARCH_MAPS = [
+  ['ds9_a', 'ds9_a'], ['ds9_b', 'ds9_b'], ['earth', 'Earth'], ['drywet', 'Drywet'], ['world', 'World'], ['seis', 'Seis'],
+];
+
+let lastPreset = 'turbo';  // the preset selection that is currently loaded
+let uploaded = null;       // { entries, space, info, name } from the last successful upload
+
+function setUploadNote(text) {
+  const el = $('#uploadNote');
+  el.textContent = text;
+  el.hidden = !text;
+}
+
+function cvdSelected() {
+  return $('#cvdP').checked || $('#cvdD').checked || $('#cvdT').checked;
+}
+
+function optimizeButtonHTML() {
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Optimize (${MODE_INFO[state.mode].name})`;
+}
+
+// Labels, colors and the weight input follow the selected method
+function updateModeLabels() {
+  const info = MODE_INFO[state.mode];
+  document.body.dataset.mode = state.mode;
+  $$('#methodToggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode));
+  $('#methodDesc').textContent = info.desc;
+  $('#labelParamU').textContent = info.w1Label;
+  $('#scoreDisplay .score-label').textContent = info.scoreLabel + ':';
+  if (!state.isOptimizing) $('#btnOptimize').innerHTML = optimizeButtonHTML();
+}
+
+// The preset list depends on the method (Consistency has no Custom: it starts from an existing colormap)
+function buildPresetOptions() {
+  const sel = $('#presetSelect');
+  sel.innerHTML = '';
+  const add = (parent, value, text, hidden = false) => {
+    const o = document.createElement('option');
+    o.value = value; o.textContent = text; o.hidden = hidden;
+    parent.appendChild(o);
+  };
+  const group = (label) => {
+    const g = document.createElement('optgroup');
+    g.label = label;
+    sel.appendChild(g);
+    return g;
+  };
+  if (state.mode === 'consistency') {
+    const g1 = group('Research maps');
+    RESEARCH_MAPS.forEach(([v, t]) => add(g1, v, t));
+    const g2 = group('Standard presets');
+    STANDARD_PRESETS.forEach(([v, t]) => add(g2, v, t));
+  } else {
+    STANDARD_PRESETS.forEach(([v, t]) => add(sel, v, t));
+  }
+  add(sel, 'upload', 'Upload colormap (image / CSV)…');
+  add(sel, 'uploaded', uploaded ? `Uploaded: ${uploaded.name}` : '', !uploaded);
+  if (state.mode === 'uniform') add(sel, 'custom', '— Custom —');
+}
+
+// Consistency: take a 256-color colormap, place the representative colors at equal steps of
+// color difference (arc length) and remember where they are, plus the original for evaluation.
+function loadLab256(lab256) {
+  const { points, positions } = arcLengthExtract(lab256, N_SLOTS);
+  state.optimizedSlots = null;
+  state.selectedSlot = -1;
+  state.prefIndices.clear();
+  for (let i = 0; i < N_SLOTS; i++) {
+    state.slots[i] = { ...points[i] };
+    state.prefIndices.add(i);
+  }
+  state.positions = positions;
+  state.reference = lab256;
+  state.refAdj = adjacentDeltaE(points);
+  hidePicker();
+  renderAll();
+}
+
+function loadPresetConsistency(name) {
+  const rgb = decodeColormap256(name);
+  if (!rgb) return;
+  loadLab256(lab256FromEntries(rgb, 'rgb'));
+}
+
+// Load whatever the preset list says (a preset, or the uploaded colormap) for the current method
+function loadSelected(v) {
+  const consistency = state.mode === 'consistency';
+  if (v === 'uploaded' && uploaded) {
+    if (consistency) {
+      loadLab256(lab256FromEntries(uploaded.entries, uploaded.space));
+      setUploadNote(`${uploaded.info} → ${N_SLOTS} colors (equal color-difference steps)`);
+    } else {
+      loadPoints(extractPoints(uploaded.entries, N_SLOTS, uploaded.space));
+      setUploadNote(`${uploaded.info} → ${N_SLOTS} colors`);
+    }
+    return;
+  }
+  setUploadNote('');
+  if (consistency) loadPresetConsistency(v); else loadPreset(v);
+}
+
+function setMode(mode) {
+  if (mode === state.mode || state.isOptimizing) return;
+  // each method keeps its own weights
+  const w1 = parseFloat($('#paramU').value), q = parseFloat($('#paramQ').value);
+  MODE_WEIGHTS[state.mode] = {
+    w1: Number.isFinite(w1) ? w1 : MODE_DEFAULTS[state.mode].w1,
+    q: Number.isFinite(q) ? q : MODE_DEFAULTS[state.mode].q,
+  };
+  state.mode = mode;
+  $('#paramU').value = MODE_WEIGHTS[mode].w1;
+  $('#paramQ').value = MODE_WEIGHTS[mode].q;
+  buildPresetOptions();
+  let v = lastPreset;
+  if (![...$('#presetSelect').options].some(o => o.value === v && !o.hidden)) v = DEFAULT_PRESET[mode];
+  $('#presetSelect').value = v;
+  lastPreset = v;
+  updateModeLabels();
+  loadSelected(v);
+}
+
+// 256-color interpolation of the representative colors (Consistency: by their positions)
+function buildInterp(colors, ls, as, bs) {
+  if (state.mode === 'consistency' && state.positions && colors.length === N_SLOTS) {
+    return interpolateColorsByIndex(256, N_SLOTS, state.positions, ls, as, bs);
+  }
+  return interpolateColors(256, colors.length, ls, as, bs);
 }
 
 function initDefaults() {
@@ -244,6 +414,7 @@ function getActivePoints() {
 function renderColorStrip() {
   const strip = $('#colorStrip');
   strip.innerHTML = '';
+  strip.classList.toggle('locked', state.mode === 'consistency');
   const pts = state.optimizedSlots || state.slots;
 
   for (let i = 0; i < N_SLOTS; i++) {
@@ -551,7 +722,7 @@ function renderColormapPreview() {
   const ls = colors.map(c => c.L);
   const as = colors.map(c => c.a);
   const bs = colors.map(c => c.b);
-  const interp = interpolateColors(256, colors.length, ls, as, bs);
+  const interp = buildInterp(colors, ls, as, bs);
 
   drawColormapBar($('#colormapCanvas'), interp);
 
@@ -705,16 +876,17 @@ function getFullSlots() {
 
 // ===== Evaluation of the generated colormap =====
 // The score shown to the user (before and after generation) is computed on the generated
-// 256-color colormap, sub-sampled every EVAL_K_GAP points (idx 0, 8, ..., 248) plus the last
-// point (idx 255) -- not on the N_SLOTS representative colors that SA works on. The formula is
-// the same eScore as the SA objective; only the evaluated points differ.
-const EVAL_K_GAP = 8;
-
+// 256-color colormap, sub-sampled every 8 points (idx 0, 8, ..., 248) plus the last point
+// (idx 255) -- not on the N_SLOTS representative colors that SA works on. The formula is the same
+// eScore as the SA objective; only the evaluated points differ.
+// Consistency: the colormap is built from the representative colors at their positions, and the
+// adjacent color differences are compared with those of the ORIGINAL 256-color colormap.
 function evalScoreGap(fullLs, fullAs, fullBs, params, returnDetails = false) {
-  const interp = interpolateColors(256, N_SLOTS, fullLs, fullAs, fullBs);
-  const idx = [];
-  for (let i = 0; i < 256; i += EVAL_K_GAP) idx.push(i);
-  if (idx[idx.length - 1] !== 255) idx.push(255);
+  const consistency = params.mode === 'consistency' && state.positions && state.reference;
+  const interp = consistency
+    ? interpolateColorsByIndex(256, N_SLOTS, state.positions, fullLs, fullAs, fullBs)
+    : interpolateColors(256, N_SLOTS, fullLs, fullAs, fullBs);
+  const idx = gapIndices();
   const m = idx.length;
   const ls = new Float64Array(m);
   const as = new Float64Array(m);
@@ -724,7 +896,34 @@ function evalScoreGap(fullLs, fullAs, fullBs, params, returnDetails = false) {
     as[j] = interp.as[idx[j]];
     bs[j] = interp.bs[idx[j]];
   }
-  return eScore(ls, as, bs, m, new Float64Array(m - 1), params, returnDetails);
+  const dInit = consistency
+    ? adjacentDeltaE(idx.map(i => ({ L: state.reference[i][0], a: state.reference[i][1], b: state.reference[i][2] })))
+    : new Float64Array(m - 1);
+  return eScore(ls, as, bs, m, dInit, params, returnDetails);
+}
+
+// Breakdown of the score: U′ = 100·U, F′ = 100·F, Q′ and S′ = 1000·Q, 1000·S
+function renderScoreDetails(d, params) {
+  const item = (label, value) =>
+    `<div class="score-detail-item"><span class="score-detail-label">${label}:</span> <span class="score-detail-value">${value}</span></div>`;
+  let html = '';
+  if (params.mode === 'consistency') {
+    html += item('F′ (Consistency)', (d.F * 100).toFixed(1));
+    if (params.UP) html += item('FP′ (Consistency P)', (d.fP * 100).toFixed(1)) + item('QP′ (Contrast P)', (d.ePPsi * 1000).toFixed(1));
+    if (params.UD) html += item('FD′ (Consistency D)', (d.fD * 100).toFixed(1)) + item('QD′ (Contrast D)', (d.eDPsi * 1000).toFixed(1));
+    if (params.UT) html += item('FT′ (Consistency T)', (d.fT * 100).toFixed(1)) + item('QT′ (Contrast T)', (d.eTPsi * 1000).toFixed(1));
+    html += item('F̂ (Mean ΔE shift)', d.fHat.toFixed(2));
+    html += item('S′ (Smoothness)', (d.es * 1000).toFixed(1));
+  } else {
+    html += item('UN′ (Uniformity N)', (d.eu * 100).toFixed(1));
+    if (params.UP) html += item('UP′ (Uniformity P)', (d.euP * 100).toFixed(1)) + item('QP′ (Contrast P)', (d.ePPsi * 1000).toFixed(1));
+    if (params.UD) html += item('UD′ (Uniformity D)', (d.euD * 100).toFixed(1)) + item('QD′ (Contrast D)', (d.eDPsi * 1000).toFixed(1));
+    if (params.UT) html += item('UT′ (Uniformity T)', (d.euT * 100).toFixed(1)) + item('QT′ (Contrast T)', (d.eTPsi * 1000).toFixed(1));
+    html += item('S′ (Smoothness)', (d.es * 1000).toFixed(1));
+  }
+  const detailsEl = $('#scoreDetails');
+  detailsEl.style.display = 'grid';
+  detailsEl.innerHTML = html;
 }
 
 function renderStats() {
@@ -735,42 +934,39 @@ function renderStats() {
     $('#scoreDetails').style.display = 'none';
     return;
   }
-  
+
+  const w = MODE_DEFAULTS[state.mode];
   const params = {
     UP: $('#cvdP').checked ? 1 : 0,
     UD: $('#cvdD').checked ? 1 : 0,
     UT: $('#cvdT').checked ? 1 : 0,
     S1_WEIGHT: parseFloat($('#paramS1').value) || 1.0,
-    u_WEIGHT: parseFloat($('#paramU').value) || 0.1,
-    q_WEIGHT: parseFloat($('#paramQ').value) || 0.7,
+    u_WEIGHT: parseFloat($('#paramU').value) || w.w1,
+    q_WEIGHT: parseFloat($('#paramQ').value) || w.q,
+    mode: state.mode,
   };
 
+  if (state.mode === 'consistency') {
+    if (!state.positions || !state.reference) {
+      $('#scoreDisplay').style.display = 'none';
+      $('#scoreDetails').style.display = 'none';
+      return;
+    }
+    if (!(params.UP || params.UD || params.UT)) {
+      // Consistency compares how each CVD type sees the colormap, so at least one type is needed
+      $('#scoreDisplay').style.display = 'none';
+      const el = $('#scoreDetails');
+      el.style.display = 'grid';
+      el.innerHTML = '<div class="score-detail-item" style="grid-column: 1 / -1">Select at least one CVD type to evaluate Consistency.</div>';
+      return;
+    }
+  }
+
   const scoreData = evalScoreGap(full.fullLs, full.fullAs, full.fullBs, params, true);
-  
+
   $('#scoreDisplay').style.display = 'flex';
   $('#scoreValue').textContent = scoreData.finalScore.toFixed(5);
-
-  const d = scoreData;
-  const detailsEl = $('#scoreDetails');
-  detailsEl.style.display = 'grid';
-  
-  let html = '';
-  html += `<div class="score-detail-item"><span class="score-detail-label">UN′ (Uniformity N):</span> <span class="score-detail-value">${(d.eu * 100).toFixed(1)}</span></div>`;
-  if (params.UP) {
-    html += `<div class="score-detail-item"><span class="score-detail-label">UP′ (Uniformity P):</span> <span class="score-detail-value">${(d.euP * 100).toFixed(1)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QP′ (Contrast P):</span> <span class="score-detail-value">${(d.ePPsi * 1000).toFixed(1)}</span></div>`;
-  }
-  if (params.UD) {
-    html += `<div class="score-detail-item"><span class="score-detail-label">UD′ (Uniformity D):</span> <span class="score-detail-value">${(d.euD * 100).toFixed(1)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QD′ (Contrast D):</span> <span class="score-detail-value">${(d.eDPsi * 1000).toFixed(1)}</span></div>`;
-  }
-  if (params.UT) {
-    html += `<div class="score-detail-item"><span class="score-detail-label">UT′ (Uniformity T):</span> <span class="score-detail-value">${(d.euT * 100).toFixed(1)}</span></div>`;
-    html += `<div class="score-detail-item"><span class="score-detail-label">QT′ (Contrast T):</span> <span class="score-detail-value">${(d.eTPsi * 1000).toFixed(1)}</span></div>`;
-  }
-  html += `<div class="score-detail-item"><span class="score-detail-label">S′ (Smoothness):</span> <span class="score-detail-value">${(d.es * 1000).toFixed(1)}</span></div>`;
-  
-  detailsEl.innerHTML = html;
+  renderScoreDetails(scoreData, params);
 }
 
 // ===== Render All =====
@@ -1030,6 +1226,17 @@ function startOptimization() {
   }
   const { fullLs, fullAs, fullBs, assignedIndices } = full;
 
+  if (state.mode === 'consistency') {
+    if (!cvdSelected()) {
+      alert('Consistency needs at least one CVD type. Please select P-, D- or T-type.\n\n整合性では色覚タイプを 1 つ以上選んでください。');
+      return;
+    }
+    if (assignedIndices.length !== N_SLOTS || !state.refAdj) {
+      alert(`Consistency needs all ${N_SLOTS} slots to have a color. Please choose a colormap first.\n\n整合性では ${N_SLOTS} 個すべてのスロットに色が必要です。カラーマップを選んでください。`);
+      return;
+    }
+  }
+
   state.isOptimizing = true;
   const btn = $('#btnOptimize');
   btn.disabled = true;
@@ -1083,6 +1290,9 @@ function startOptimization() {
     q_WEIGHT: parseFloat($('#paramQ').value),
     R: parseFloat($('#paramR').value),
     R_dash: parseFloat($('#paramRDash').value),
+    mode: state.mode,
+    // Consistency: adjacent dE of the ORIGINAL representative colors (the reference to stay close to)
+    dInitial: state.mode === 'consistency' ? Array.from(state.refAdj) : null,
   };
 
   const worker = new Worker(
@@ -1128,7 +1338,7 @@ function startOptimization() {
     } else if (msg.type === 'done') {
       state.isOptimizing = false;
       btn.disabled = false;
-      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Optimize`;
+      btn.innerHTML = optimizeButtonHTML();
 
       if (msg.controlPoints) {
         labTrajectoryHistory.push({
@@ -1164,30 +1374,7 @@ function startOptimization() {
       $('#scoreDisplay').style.display = 'flex';
       $('#scoreValue').textContent = `${initialEval.toFixed(5)} → ${finalEval.finalScore.toFixed(5)}`;
 
-      // Render score details
-      if (msg.controlPoints) {
-        const d = finalEval;
-        const detailsEl = $('#scoreDetails');
-        detailsEl.style.display = 'grid';
-        
-        let html = '';
-        html += `<div class="score-detail-item"><span class="score-detail-label">UN′ (Uniformity N):</span> <span class="score-detail-value">${(d.eu * 100).toFixed(1)}</span></div>`;
-        if (params.UP) {
-          html += `<div class="score-detail-item"><span class="score-detail-label">UP′ (Uniformity P):</span> <span class="score-detail-value">${(d.euP * 100).toFixed(1)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QP′ (Contrast P):</span> <span class="score-detail-value">${(d.ePPsi * 1000).toFixed(1)}</span></div>`;
-        }
-        if (params.UD) {
-          html += `<div class="score-detail-item"><span class="score-detail-label">UD′ (Uniformity D):</span> <span class="score-detail-value">${(d.euD * 100).toFixed(1)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QD′ (Contrast D):</span> <span class="score-detail-value">${(d.eDPsi * 1000).toFixed(1)}</span></div>`;
-        }
-        if (params.UT) {
-          html += `<div class="score-detail-item"><span class="score-detail-label">UT′ (Uniformity T):</span> <span class="score-detail-value">${(d.euT * 100).toFixed(1)}</span></div>`;
-          html += `<div class="score-detail-item"><span class="score-detail-label">QT′ (Contrast T):</span> <span class="score-detail-value">${(d.eTPsi * 1000).toFixed(1)}</span></div>`;
-        }
-        html += `<div class="score-detail-item"><span class="score-detail-label">S′ (Smoothness):</span> <span class="score-detail-value">${(d.es * 1000).toFixed(1)}</span></div>`;
-        
-        detailsEl.innerHTML = html;
-      }
+      renderScoreDetails(finalEval, params);
 
       renderAll();
       if (state.selectedSlot >= 0) showPicker(state.selectedSlot);
@@ -1212,7 +1399,7 @@ function getExportData() {
   const ls = colors.map(c => c.L);
   const as = colors.map(c => c.a);
   const bs = colors.map(c => c.b);
-  const interp = interpolateColors(256, colors.length, ls, as, bs);
+  const interp = buildInterp(colors, ls, as, bs);
   return { colors, interp };
 }
 
@@ -1383,13 +1570,13 @@ function initRouting() {
 
 // ===== Events =====
 function initEvents() {
+  // Method toggle (Uniformity / Consistency)
+  $$('#methodToggle .toggle-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  updateModeLabels();
+
   // Preset selector. The "Upload" entry opens a file dialog instead of loading a preset.
   const presetSelect = $('#presetSelect');
   const colormapFile = $('#colormapFile');
-  const uploadNote = $('#uploadNote');
-  let lastPreset = presetSelect.value;
-  let uploaded = null; // { points, note, name } from the last successful upload
-  const setNote = (text) => { uploadNote.textContent = text; uploadNote.hidden = !text; };
   const revertPreset = () => { presetSelect.value = lastPreset; };
 
   presetSelect.addEventListener('change', (e) => {
@@ -1400,13 +1587,7 @@ function initEvents() {
       return;
     }
     lastPreset = v;
-    if (v === 'uploaded') {
-      loadPoints(uploaded.points);
-      setNote(uploaded.note);
-    } else {
-      setNote('');
-      loadPreset(v);
-    }
+    loadSelected(v);
   });
 
   colormapFile.addEventListener('cancel', revertPreset);
@@ -1414,15 +1595,12 @@ function initEvents() {
     const file = colormapFile.files[0];
     if (!file) { revertPreset(); return; }
     try {
-      const { points, note } = await loadColormapFile(file, N_SLOTS);
-      uploaded = { points, note, name: file.name };
-      const opt = presetSelect.querySelector('option[value="uploaded"]');
-      opt.textContent = `Uploaded: ${file.name}`;
-      opt.hidden = false;
+      const { entries, space, info } = await readColormapFile(file);
+      uploaded = { entries, space, info, name: file.name };
+      buildPresetOptions(); // refresh the "Uploaded: name" entry
       presetSelect.value = 'uploaded';
       lastPreset = 'uploaded';
-      loadPoints(points);
-      setNote(note);
+      loadSelected('uploaded');
     } catch (err) {
       alert(err.message);
       revertPreset();

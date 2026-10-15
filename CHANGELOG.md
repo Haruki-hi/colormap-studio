@@ -2,6 +2,18 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.3 — 2026-10-15
+
+### Added
+- **Consistency method.** A "Method" toggle at the top of the Generator selects between *Uniformity* (the existing method, which equalizes neighboring color differences) and *Consistency*, which keeps an existing colormap's own pattern of color differences (for example a deliberately larger step between sea and land) while making it hold up for CVD. The two measure different things, so both are available. Ported from the research code (`test_weight_consist.c`):
+  - objective E = w_F·F + w_Q·Q + w_S·S, with F built from how consistently each CVD type sees the neighboring color differences, plus the drift from the original colormap's differences; initial weights 0.1 / 0.8
+  - the 15 representative colors are taken at equal steps of color difference along the original 256-color colormap (so they are not evenly spaced) and the colormap is rebuilt from their positions — in the preview, the export and the Test page
+  - it starts from an existing colormap, so there is no Custom in this method; at least one CVD type must be selected
+  - the generated colormap is evaluated on the 256 colors at every 8th point plus the last (as for Uniformity), with F compared against the original colormap's color differences at the same points; shown as F′ = 100·F, FP′/FD′/FT′ = 100·σ, Q′, S′ and the mean ΔE shift F̂
+- Reference colormaps for Consistency: ds9_a, ds9_b, Earth, Drywet, World and Seis (research maps) in addition to the standard presets; an uploaded colormap works in both methods
+- The Tutorial (Japanese and English) has a new section comparing the two methods and explaining F, and the usage guide mentions the method choice
+- The active method is shown by the toggle, a colored top edge on the control panel, the score heading and the Optimize button label; each method remembers its own weights
+
 ## v1.2 — 2026-10-02
 
 ### Added

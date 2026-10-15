@@ -6,7 +6,7 @@ import {
   simTBrettel,
   calculateCIEDE2000
 } from './colormath.js';
-import { interpolateColors } from './optimizer.js';
+import { interpolateColors, interpolateColorsByIndex } from './optimizer.js';
 let _getSharedColormap = () => null;
 let _PRESETS = {};
 
@@ -123,11 +123,12 @@ function generateProceduralData(id) {
 
 // ===== Colormap Build =====
 function buildColormapLUT(colormapName) {
-  let ls, as, bs, n;
+  let ls, as, bs, n, positions = null;
   if (colormapName === 'current') {
     const shared = _getSharedColormap();
     if (shared && shared.length >= 2) {
       n = shared.length;
+      positions = shared.positions || null; // Consistency colormaps are not evenly spaced
       ls = shared.map(c => c.L);
       as = shared.map(c => c.a);
       bs = shared.map(c => c.b);
@@ -143,7 +144,9 @@ function buildColormapLUT(colormapName) {
     ls = data.map(c => c[0]); as = data.map(c => c[1]); bs = data.map(c => c[2]);
   }
 
-  const interp = interpolateColors(256, n, ls, as, bs);
+  const interp = positions
+    ? interpolateColorsByIndex(256, n, positions, ls, as, bs)
+    : interpolateColors(256, n, ls, as, bs);
   const lut = new Array(256);
   for (let i = 0; i < 256; i++) {
     const rgb = cielab2nlrgb(interp.ls[i], interp.as[i], interp.bs[i]);

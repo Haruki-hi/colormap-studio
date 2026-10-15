@@ -145,6 +145,29 @@ export function judgeInout(ls, as, bs) {
   return 1;
 }
 
+// Gamut check used by the Consistency method — a port of judge_inout() in the research code
+// (test_weight_consist.c): L* = 0 and 100 are allowed, and a tolerance GAMUT_EPS lets colors on the
+// gamut boundary (e.g. pure white) count as inside, which otherwise stalls the search.
+const GAMUT_EPS = 1e-3;
+export function judgeInoutEps(ls, as, bs) {
+  if (ls < 0.0 || ls > 100.0) return 1;
+  const fy = (ls + 16.0) / 116.0;
+  const fx = as / 500.0 + fy;
+  const fz = fy - bs / 200.0;
+  const x = X0 * labFInv(fx);
+  const y = Y0 * labFInv(fy);
+  const z = Z0 * labFInv(fz);
+  const lr = 3.2406 * x - 1.5372 * y - 0.4986 * z;
+  const lg = -0.9689 * x + 1.8758 * y + 0.0415 * z;
+  const lb = 0.0557 * x - 0.2040 * y + 1.0570 * z;
+  if (lr >= -GAMUT_EPS && lr <= 1.0 + GAMUT_EPS &&
+      lg >= -GAMUT_EPS && lg <= 1.0 + GAMUT_EPS &&
+      lb >= -GAMUT_EPS && lb <= 1.0 + GAMUT_EPS) {
+    return 0;
+  }
+  return 1;
+}
+
 // ===== CIEDE2000 =====
 function myAtan(y, x) {
   let value = Math.atan2(y, x) * 180.0 / PI;

@@ -41,7 +41,7 @@ export function extractPoints(entries, n, space) {
 
 // L*a*b* values typed into a CSV may lie outside the sRGB gamut; pull them in the same way the
 // app does elsewhere (shrink a*, b* until inside).
-function toGamut(p) {
+export function toGamut(p) {
   let { L, a, b } = p;
   L = Math.min(100, Math.max(0, L));
   for (let k = 0; k < 5000 && judgeInout(L, a, b) === 1; k++) {
@@ -157,19 +157,28 @@ async function readImageRow(file) {
 }
 
 // ===== Entry point =====
-// Returns { points: [{L,a,b} x n], note } for an image, PPM or CSV file.
-export async function loadColormapFile(file, n) {
+// Read a colormap file (horizontal image, PPM or CSV) into color entries, without extracting anything yet:
+//   { entries: [[a,b,c], ...], space: 'rgb' | 'lab', info: 'Loaded name: ...' }
+// The caller then extracts N representative colors in the way its method needs (evenly spaced for
+// Uniformity, equal arc length for Consistency).
+export async function readColormapFile(file) {
   const name = file.name || 'file';
   const lower = name.toLowerCase();
   if (lower.endsWith('.csv') || lower.endsWith('.txt') || file.type === 'text/csv') {
     const { entries, space, format } = parseCsvText(await file.text());
-    return { points: extractPoints(entries, n, space), note: `Loaded ${name}: ${entries.length} rows, ${format} → ${n} colors` };
+    return { entries, space, info: `Loaded ${name}: ${entries.length} rows, ${format}` };
   }
   if (lower.endsWith('.ppm')) {
     const { entries, w, h } = parsePpm(new Uint8Array(await file.arrayBuffer()));
     if (!(w > h)) throw new Error(MSG.horizontal);
-    return { points: extractPoints(entries, n, 'rgb'), note: `Loaded ${name}: ${w}×${h} PPM (middle row) → ${n} colors` };
+    return { entries, space: 'rgb', info: `Loaded ${name}: ${w}×${h} PPM (middle row)` };
   }
   const { entries, w, h } = await readImageRow(file);
-  return { points: extractPoints(entries, n, 'rgb'), note: `Loaded ${name}: ${w}×${h} image (middle row) → ${n} colors` };
+  return { entries, space: 'rgb', info: `Loaded ${name}: ${w}×${h} image (middle row)` };
+}
+
+// Uniformity convenience: read a file and extract n evenly spaced colors.
+export async function loadColormapFile(file, n) {
+  const { entries, space, info } = await readColormapFile(file);
+  return { points: extractPoints(entries, n, space), note: `${info} → ${n} colors` };
 }

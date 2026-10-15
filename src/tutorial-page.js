@@ -119,6 +119,40 @@ const CONTENT = {
         `,
       },
       {
+        id: 'methods',
+        icon: '🧭',
+        title: '2 つの手法：均等性と整合性',
+        body: `
+          <p>Generator ページ左上の「Method」で、目的に合わせて 2 つの手法を選べます。どちらが優れているということはなく、<strong>評価の軸が違う</strong>ので、使う場面に応じて使い分けます。選んでいる手法は、「Method」のトグル、パネル上端の色（均等性＝青紫、整合性＝ピンク）、スコア表示の見出し、Optimize ボタンの表記で確認できます。</p>
+          <table class="param-table">
+            <thead><tr><th></th><th>均等性（Uniformity）</th><th>整合性（Consistency）</th></tr></thead>
+            <tbody>
+              <tr><td>目指すこと</td><td>隣り合う色の差をそろえる</td><td>元のカラーマップが持つ色差のパターンを保ったまま、色覚特性でも見え方が食い違わないようにする</td></tr>
+              <tr><td>向く場面</td><td>色差に特別な意味がなく、どこも同じ刻みで見えるカラーマップがほしいとき</td><td>海と陸を区別するために一部の色差を意図的に大きくした、のように、色差のパターンに意味があるカラーマップを色覚に配慮したものにしたいとき</td></tr>
+              <tr><td>出発点</td><td>プリセット／Custom／アップロード</td><td>既存のカラーマップ（研究用マップ・プリセット・アップロード）。Custom はありません</td></tr>
+              <tr><td>代表色の位置</td><td>等間隔</td><td>色差が等しくなる位置（等間隔ではありません）</td></tr>
+              <tr><td>評価項</td><td>U（均等性）、Q（コントラスト）、S（滑らかさ）</td><td>F（整合性）、Q、S</td></tr>
+              <tr><td>重みの初期値</td><td>w<sub>u</sub> = 0.1、w<sub>q</sub> = 0.7</td><td>w<sub>f</sub> = 0.1、w<sub>q</sub> = 0.8</td></tr>
+              <tr><td>色覚タイプ</td><td>0 個でも実行できる</td><td>1 つ以上の選択が必須</td></tr>
+            </tbody>
+          </table>
+          <h3>整合性の評価項 F</h3>
+          <div class="formula-card">
+            <div class="math-display">E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂　（w<sub>s</sub> = 1 − w<sub>f</sub> − w<sub>q</sub>）</div>
+          </div>
+          <ul>
+            <li><strong>σ<sub>c</sub></strong>: 色覚タイプ c ごとに、「隣り合う色の差（色覚特性での見え方）÷（通常の見え方）」の比を計算し、そのばらつき（標準偏差）を求めたもの。比が場所によらず一定なら 0 で、通常の見え方での色差のパターンが、色覚特性のもとでも相似に保たれていることを表します。</li>
+            <li><strong>F̂</strong>: 元のカラーマップの隣り合う色差からの平均的なずれ（ΔE<sub>00</sub>）。小さいほど、元の色差のパターンに近いことを表します。</li>
+            <li><strong>|C|</strong>: 選んだ色覚タイプの数。F は色覚タイプごとの見え方を比べるため、1 つ以上選ぶ必要があります。</li>
+            <li><strong>Q と S</strong>: 均等性の場合と同じです。</li>
+          </ul>
+          <div class="insight-box">
+            整合性では、選んだカラーマップ（256 色）から、色差が等しくなる位置に 15 色が取り出されます。生成後のスコアは、256 色に展開したカラーマップを 8 点おき＋最後の点で測り、F は元のカラーマップの同じ点での色差と比べます。
+          </div>
+        `,
+      },
+      {
         id: 'optimization',
         icon: '⚡',
         title: '最適化エンジン',
@@ -130,6 +164,7 @@ const CONTENT = {
             <div class="math-display">E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
             <div class="math-note">（w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>）</div>
           </div>
+          <p>（上の式は均等性の場合です。整合性では U の代わりに F を使います。前の「2 つの手法」を参照してください。）</p>
           <ul>
             <li><strong>U (均等性スコア)</strong>: 各 CVD タイプ下での隣接する色の知覚差の「一貫性」を評価
               <ul>
@@ -186,6 +221,7 @@ const CONTENT = {
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
                 <h4>ベースとなる配色を選ぶ</h4>
+                <p>最初に、左上の「Method」で手法を選びます。隣り合う色の差をそろえたいときは「Uniformity（均等性）」、元のカラーマップが持つ色差のパターンを保ちたいときは「Consistency（整合性）」です（違いは上の「2 つの手法」を参照）。整合性では既存のカラーマップから始めるため、Custom はありません。</p>
                 <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。手持ちのカラーマップを高性能化したいときは「Upload colormap (image / CSV)…」を選び、横長のカラーマップ画像（PNG・JPEG・BMP・PPM）か、RGB または L*a*b* の CSV を読み込んでください。そこから 15 色が取り出されて並び、そのまま「Optimize」できます。</p>
               </div>
             </div>
@@ -194,7 +230,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>使いたい色を選んで置く</h4>
                 <p>画面中央に並ぶ 15 個の四角（カラーストリップ）は、グラデーションが通過していく色の「目印」です。四角をクリックすると色選択パネルが開くので、色域図をクリックするか、L*a*b* または RGB の数値を入力して色を決め、「Apply」を押すと確定してパネルが閉じます。</p>
-                <p><strong>すべての四角に色を置く必要はありません。</strong>色を置いた四角どうしの間は自動的につながる（グラデーションで補間される）ので、こだわりたい色だけを選べば十分です。置いた色を取り消したいときは、四角の右上に出る「✕」を押してください。四角を右クリックすると付く★マークは、「自分が意図して選んだ色」であることを示す目印です。</p>
+                <p><strong>すべての四角に色を置く必要はありません。</strong>色を置いた四角どうしの間は自動的につながる（グラデーションで補間される）ので、こだわりたい色だけを選べば十分です。置いた色を取り消したいときは、四角の右上に出る「✕」を押してください。四角を右クリックすると付く★マークは、「自分が意図して選んだ色」であることを示す目印です。整合性では、選んだカラーマップから 15 色が自動で置かれ（位置は等間隔ではありません）、色を直すことはできますが、消すことはできません。</p>
                 <p><strong>⚠️ ただし両端（0 番と 14 番）だけは必ず色を決めてください。</strong> ここがグラデーションの始まりと終わりになるため、最適化を開始するための必須条件です。</p>
               </div>
             </div>
@@ -202,7 +238,7 @@ const CONTENT = {
               <div class="guide-step-icon">3</div>
               <div class="guide-step-content">
                 <h4>配慮したい見え方（CVD タイプ）を選ぶ</h4>
-                <p>人によって色の感じ方は異なります。「CVD types」のチェックボックスで、配慮したいタイプ（P型・D型・T型。詳しくは上の「色覚の多様性（CVD）」の章を参照）にチェックを入れてください。迷った場合は、比較的人数の多い P型・D型の両方にチェックを入れることをおすすめします。すぐ下のプレビューバーで、それぞれの見え方をその場で確認できます。</p>
+                <p>人によって色の感じ方は異なります。「CVD types」のチェックボックスで、配慮したいタイプ（P型・D型・T型。詳しくは上の「色覚の多様性（CVD）」の章を参照）にチェックを入れてください。迷った場合は、比較的人数の多い P型・D型の両方にチェックを入れることをおすすめします。すぐ下のプレビューバーで、それぞれの見え方をその場で確認できます。整合性では、1 つ以上の選択が必須です。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -210,7 +246,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>「Optimize」で自動調整する</h4>
                 <p>「Optimize」ボタンを押すと、自分で選んだ色はできるだけ保ちながら、色を置いていない部分をコンピュータが自動的に調整します。目的は、チェックしたどの CVD タイプで見ても隣どうしの色がきちんと区別できるようにすることです。</p>
-                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。あわせて表示される U′・Q′・S′ は、均等性 U を 100 倍、コントラスト Q と滑らかさ S を 1000 倍した値です（いずれも小さいほど良い）。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
+                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。あわせて表示される U′・Q′・S′ は、均等性 U を 100 倍、コントラスト Q と滑らかさ S を 1000 倍した値です（いずれも小さいほど良い）。整合性では U′ の代わりに F′（整合性 F の 100 倍）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -342,6 +378,40 @@ const CONTENT = {
         `,
       },
       {
+        id: 'methods',
+        icon: '🧭',
+        title: 'Two Methods: Uniformity and Consistency',
+        body: `
+          <p>Use "Method" at the top left of the Generator page to choose between two methods. Neither is better than the other: they <strong>measure different things</strong>, so pick the one that fits your situation. You can always see which one is active from the "Method" toggle, the color of the panel's top edge (Uniformity = indigo, Consistency = pink), the heading of the score display, and the label of the Optimize button.</p>
+          <table class="param-table">
+            <thead><tr><th></th><th>Uniformity</th><th>Consistency</th></tr></thead>
+            <tbody>
+              <tr><td>Goal</td><td>Make the color difference between neighboring colors equal</td><td>Keep the original colormap's own pattern of color differences while making it look consistent under CVD</td></tr>
+              <tr><td>Use it when</td><td>The color differences carry no special meaning and you want every step to look even</td><td>The pattern of color differences is meaningful — for example, a step deliberately made larger to separate sea from land — and you want a CVD-aware version of it</td></tr>
+              <tr><td>Starting point</td><td>Preset / Custom / Upload</td><td>An existing colormap (research map, preset or upload). There is no Custom</td></tr>
+              <tr><td>Representative colors</td><td>Evenly spaced</td><td>At equal steps of color difference (not evenly spaced)</td></tr>
+              <tr><td>Terms</td><td>U (uniformity), Q (contrast), S (smoothness)</td><td>F (consistency), Q, S</td></tr>
+              <tr><td>Initial weights</td><td>w<sub>u</sub> = 0.1, w<sub>q</sub> = 0.7</td><td>w<sub>f</sub> = 0.1, w<sub>q</sub> = 0.8</td></tr>
+              <tr><td>CVD types</td><td>Can run with none selected</td><td>At least one must be selected</td></tr>
+            </tbody>
+          </table>
+          <h3>The Consistency term F</h3>
+          <div class="formula-card">
+            <div class="math-display">E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂  (w<sub>s</sub> = 1 − w<sub>f</sub> − w<sub>q</sub>)</div>
+          </div>
+          <ul>
+            <li><strong>σ<sub>c</sub></strong>: for each CVD type c, the ratio "color difference between neighbors as seen with CVD ÷ as seen normally" is computed, and σ<sub>c</sub> is its spread (standard deviation). It is 0 when the ratio is the same everywhere, meaning the pattern of color differences seen normally is preserved, proportionally, under CVD.</li>
+            <li><strong>F̂</strong>: the average deviation from the original colormap's neighboring color differences (ΔE<sub>00</sub>). The smaller it is, the closer to the original pattern.</li>
+            <li><strong>|C|</strong>: the number of selected CVD types. F compares how each type sees the colormap, so at least one must be selected.</li>
+            <li><strong>Q and S</strong>: the same as in Uniformity.</li>
+          </ul>
+          <div class="insight-box">
+            In Consistency, 15 colors are taken from the chosen 256-color colormap at equal steps of color difference. After generation, the score is measured on the 256-color colormap at every 8th point plus the last one, and F is compared with the original colormap's color differences at the same points.
+          </div>
+        `,
+      },
+      {
         id: 'optimization',
         icon: '⚡',
         title: 'Optimization Engine',
@@ -353,6 +423,7 @@ const CONTENT = {
             <div class="math-display">E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
             <div class="math-note">(w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>)</div>
           </div>
+          <p>(The formula above is for Uniformity. Consistency uses F instead of U — see "Two Methods" above.)</p>
           <ul>
             <li><strong>U (Uniformity score)</strong>: Evaluates "consistency" of perceived color differences under CVD.
               <ul>
@@ -409,6 +480,7 @@ const CONTENT = {
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
                 <h4>Choose a starting colormap</h4>
+                <p>First, choose a method with "Method" at the top left. Pick "Uniformity" to make the color difference between neighboring colors equal, or "Consistency" to keep the original colormap's own pattern of color differences (see "Two Methods" above for the difference). Consistency starts from an existing colormap, so it has no Custom.</p>
                 <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in. If you already have a colormap you want to improve, choose "Upload colormap (image / CSV)…" and load a horizontal colormap image (PNG, JPEG, BMP or PPM) or a CSV of RGB or L*a*b* values; 15 colors are extracted from it and placed in the strip, ready for "Optimize."</p>
               </div>
             </div>
@@ -417,7 +489,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Pick the colors you want to use</h4>
                 <p>The 15 squares in the middle of the screen (the color strip) mark the colors your gradient will pass through. Click a square to open the color picker: click anywhere on the gamut wheel, or type in L*a*b* or RGB values, then press "Apply" to confirm — the panel closes automatically.</p>
-                <p><strong>You don't have to fill in every square.</strong> The colors between the squares you do set are filled in automatically by blending, so you only need to specify the colors you actually care about. Click the "✕" that appears in a square's corner to remove a color. Right-clicking a square adds a small ★ mark, which simply flags "this color was chosen deliberately" — it's a visual note for you, not a required step.</p>
+                <p><strong>You don't have to fill in every square.</strong> The colors between the squares you do set are filled in automatically by blending, so you only need to specify the colors you actually care about. Click the "✕" that appears in a square's corner to remove a color. Right-clicking a square adds a small ★ mark, which simply flags "this color was chosen deliberately" — it's a visual note for you, not a required step. In Consistency, 15 colors are placed automatically from the colormap you chose (not evenly spaced); you can adjust a color, but you can't remove one.</p>
                 <p><strong>⚠️ The two end squares (slot 0 and slot 14) are the only ones that must be set.</strong> They define where the gradient starts and ends, and optimization won't start without them.</p>
               </div>
             </div>
@@ -425,7 +497,7 @@ const CONTENT = {
               <div class="guide-step-icon">3</div>
               <div class="guide-step-content">
                 <h4>Choose which CVD types to account for</h4>
-                <p>People perceive color differently depending on their vision. Under "CVD types," check the type(s) you want the colormap optimized for — P-type, D-type, and/or T-type (see the "Color Vision Deficiency (CVD)" section above for what these mean). If you're not sure, checking both P-type and D-type is a good default, since they're the most common. The preview bars right below update immediately to show how each type would perceive your current colors.</p>
+                <p>People perceive color differently depending on their vision. Under "CVD types," check the type(s) you want the colormap optimized for — P-type, D-type, and/or T-type (see the "Color Vision Deficiency (CVD)" section above for what these mean). If you're not sure, checking both P-type and D-type is a good default, since they're the most common. The preview bars right below update immediately to show how each type would perceive your current colors. Consistency requires at least one type to be selected.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -433,7 +505,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Click "Optimize" to auto-adjust</h4>
                 <p>Clicking "Optimize" keeps the colors you deliberately chose roughly in place while automatically adjusting the colors you left unset. The goal is to make sure adjacent colors stay distinguishable for every CVD type you checked in the previous step.</p>
-                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). The U′, Q′ and S′ values shown alongside are the uniformity U multiplied by 100 and the contrast Q and smoothness S multiplied by 1000 (lower is better for all of them). This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
+                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). The U′, Q′ and S′ values shown alongside are the uniformity U multiplied by 100 and the contrast Q and smoothness S multiplied by 1000 (lower is better for all of them). In Consistency, F′ (100 times the consistency term F) is shown instead of U′. This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
               </div>
             </div>
             <div class="guide-step">
