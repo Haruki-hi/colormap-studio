@@ -20,7 +20,7 @@ const CONTENT = {
         icon: '⚠️',
         title: 'カラーマップが科学を左右する',
         body: `
-          <p>カラーマップの選択は、データの解釈を大きく左右します。<strong>誤ったカラーマップは存在しないパターンを生み出し、重要な特徴を隠蔽します。</strong></p>
+          <p>カラーマップの選択は、データの解釈を大きく左右します。<strong>データの違いを正しく伝えないカラーマップは、実際にはない模様を作り出したり、大切な特徴を見えにくくしたりします。</strong></p>
           <h3>Jet vs Viridis — 同じデータの全く異なる印象</h3>
           <p>下のデモは同一の数値データを Jet（悪い例）と Viridis（良い例）で色付けしたものです。</p>
           <div class="tutorial-figure">
@@ -136,16 +136,35 @@ const CONTENT = {
               <tr><td>色覚タイプ</td><td>0 個でも実行できる</td><td>1 つ以上の選択が必須</td></tr>
             </tbody>
           </table>
-          <h3>整合性の評価項 F</h3>
+          <h3>目的関数（良し悪しを測るものさし）</h3>
+          <p>最適化では、次の E を小さくするように色を調整します。E は 3 つの項の重み付き和で、手法によって最初の項だけが違い、Q と S は共通です。</p>
           <div class="formula-card">
-            <div class="math-display">E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
-            <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂　（w<sub>s</sub> = 1 − w<sub>f</sub> − w<sub>q</sub>）</div>
+            <div class="math-display">均等性：E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-display">整合性：E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-note">（w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>、整合性では 1 − w<sub>f</sub> − w<sub>q</sub>）</div>
           </div>
           <ul>
-            <li><strong>σ<sub>c</sub></strong>: 色覚タイプ c ごとに、「隣り合う色の差（色覚特性での見え方）÷（通常の見え方）」の比を計算し、そのばらつき（標準偏差）を求めたもの。比が場所によらず一定なら 0 で、通常の見え方での色差のパターンが、色覚特性のもとでも相似に保たれていることを表します。</li>
-            <li><strong>F̂</strong>: 元のカラーマップの隣り合う色差からの平均的なずれ（ΔE<sub>00</sub>）。小さいほど、元の色差のパターンに近いことを表します。</li>
-            <li><strong>|C|</strong>: 選んだ色覚タイプの数。F は色覚タイプごとの見え方を比べるため、1 つ以上選ぶ必要があります。</li>
-            <li><strong>Q と S</strong>: 均等性の場合と同じです。</li>
+            <li><strong>U（均等性スコア）</strong>: 隣り合う色の見た目の差がそろっているかを評価します。
+              <ul>
+                <li>隣接スロット間の ΔE の変動係数（標準偏差÷平均）を最小化します。</li>
+              </ul>
+            </li>
+            <li><strong>F（整合性スコア）</strong>: 元のカラーマップの色差のパターンが、色覚特性のもとでも保たれているかを評価します。
+              <div class="formula-card">
+                <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂</div>
+              </div>
+              <ul>
+                <li><strong>σ<sub>c</sub></strong>: 色覚タイプ c ごとに、「隣り合う色の差（色覚特性での見え方）÷（通常の見え方）」の比を計算し、そのばらつき（標準偏差）を求めたもの。比が場所によらず一定なら 0 で、通常の見え方での色差のパターンが、色覚特性のもとでも相似に保たれていることを表します。</li>
+                <li><strong>F̂</strong>: 元のカラーマップの隣り合う色差からの平均的なずれ（ΔE<sub>00</sub>）。小さいほど、元の色差のパターンに近いことを表します。</li>
+                <li><strong>|C|</strong>: 選んだ色覚タイプの数。F は色覚タイプごとの見え方を比べるため、1 つ以上選ぶ必要があります。</li>
+              </ul>
+            </li>
+            <li><strong>Q（コントラスト確保項）</strong>: すべての色の組み合わせで、色覚特性のもとでも区別できるかを評価します。
+              <ul>
+                <li>色差が目標値（通常の見え方の色差の半分、最大 30）を下回らないように重み付けして評価します。</li>
+              </ul>
+            </li>
+            <li><strong>S（滑らかさ）</strong>: カラーマップが Lab 空間で描く経路の滑らかさ（向きの変化の小ささ）を評価します。</li>
           </ul>
           <div class="insight-box">
             整合性では、選んだカラーマップ（256 色）から、色差が等しくなる位置に 15 色が取り出されます。生成後のスコアは、256 色に展開したカラーマップを 8 点おき＋最後の点で測り、F は元のカラーマップの同じ点での色差と比べます。
@@ -155,35 +174,16 @@ const CONTENT = {
       {
         id: 'optimization',
         icon: '⚡',
-        title: '最適化エンジン',
+        title: '最適化のしくみ',
         body: `
           <p>Colormap Studio は <strong>焼きなまし法（Simulated Annealing, SA）</strong> を使って、CVD に配慮したカラーマップを自動生成します。</p>
-          <h3>目的関数</h3>
-          <p>最適化の目的関数は以下の要素を組み合わせています：</p>
-          <div class="formula-card">
-            <div class="math-display">E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
-            <div class="math-note">（w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>）</div>
-          </div>
-          <p>（上の式は均等性の場合です。整合性では U の代わりに F を使います。前の「2 つの手法」を参照してください。）</p>
-          <ul>
-            <li><strong>U (均等性スコア)</strong>: 各 CVD タイプ下での隣接する色の知覚差の「一貫性」を評価
-              <ul>
-                <li>隣接スロット間の ΔE の変動係数（標準偏差/平均）を最小化します。</li>
-              </ul>
-            </li>
-            <li><strong>Q (2色覚でのコントラスト確保項)</strong>: 全ペアの色の組み合わせにおける色の識別性を評価
-              <ul>
-                <li>全ての色の組み合わせについて、CVD 下での色差が目標値（通常色覚の色差の半分、最大30）を下回らないよう重み付け評価します。</li>
-              </ul>
-            </li>
-            <li><strong>S (滑らかさ)</strong>: カラーマップパスの滑らかさ（方向変化の小ささ）を評価</li>
-          </ul>
+          <p>色の良し悪しを測る目的関数 E（U または F、Q、S の重み付き和）は、前の「2 つの手法」で説明しています。ここでは、E を小さくする色をどう探すかを説明します。</p>
           <h3>主要パラメータ</h3>
           <table class="param-table">
             <thead><tr><th>パラメータ</th><th>説明</th><th>デフォルト</th></tr></thead>
             <tbody>
-              <tr><td>w<sub>u</sub> (u_WEIGHT)</td><td>均等性（U）の重み</td><td>0.1</td></tr>
-              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>コントラスト確保（Q）の重み</td><td>0.7</td></tr>
+              <tr><td>w<sub>u</sub> / w<sub>f</sub> (u_WEIGHT)</td><td>均等性（U）または整合性（F）の重み</td><td>0.1</td></tr>
+              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>コントラスト確保（Q）の重み</td><td>0.7（均等性）／0.8（整合性）</td></tr>
               <tr><td>S1_WEIGHT</td><td>滑らかさ（es）の計算時の係数</td><td>1.0</td></tr>
               <tr><td>R</td><td>プリファレンス色の移動バイアス半径</td><td>7.0</td></tr>
               <tr><td>R'</td><td>非プリファレンス色の移動バイアス半径</td><td>10.0</td></tr>
@@ -216,6 +216,25 @@ const CONTENT = {
         title: '使い方ガイド',
         body: `
           <p>以下の手順どおりに進めれば、専門知識がなくても色覚の多様性に配慮したカラーマップを作成できます。難しく感じる場合は、まず「Preset colormap」から既存の配色を選んで「Optimize」を押すだけでも十分実用的な結果になります。</p>
+          <div class="tutorial-figure">
+            <div class="ui-map" role="img" aria-label="Generator 画面の見取り図">
+              <div class="ui-map-nav"><span class="ui-map-tab on">Generator</span><span class="ui-map-tab">Test<b class="ui-badge">5</b></span><span class="ui-map-tab">Tutorial</span></div>
+              <div class="ui-map-body">
+                <div class="ui-map-left">
+                  <div class="ui-map-box"><span class="ui-map-cap">Method</span><span class="ui-map-seg"><i class="on">Uniformity</i><i>Consistency</i></span><b class="ui-badge">1</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Preset colormap</span><span class="ui-map-select">Viridis ▾</span><b class="ui-badge">1</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">CVD types</span><span class="ui-map-chips"><i>P-type</i><i>D-type</i><i class="off">T-type</i></span><b class="ui-badge">3</b></div>
+                  <div class="ui-map-box ui-map-optimize"><span class="ui-map-btn">Optimize</span><b class="ui-badge">4</b></div>
+                </div>
+                <div class="ui-map-right">
+                  <div class="ui-map-box"><span class="ui-map-cap">Candidates of specified colors</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Colormap preview / CVD simulation</span><span class="ui-map-bar"></span><span class="ui-map-bar ui-map-bar2"></span></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i></span><b class="ui-badge">6</b></div>
+                </div>
+              </div>
+            </div>
+            <p class="tutorial-caption">↑ Generator 画面の見取り図。丸い番号は、下の手順 1〜6 で操作する場所を示しています。</p>
+          </div>
           <div class="guide-steps">
             <div class="guide-step">
               <div class="guide-step-icon">1</div>
@@ -395,16 +414,35 @@ const CONTENT = {
               <tr><td>CVD types</td><td>Can run with none selected</td><td>At least one must be selected</td></tr>
             </tbody>
           </table>
-          <h3>The Consistency term F</h3>
+          <h3>Objective function (the yardstick of "good")</h3>
+          <p>Optimization adjusts the colors so that E becomes smaller. E is a weighted sum of three terms: only the first term differs between the methods, while Q and S are shared.</p>
           <div class="formula-card">
-            <div class="math-display">E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
-            <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂  (w<sub>s</sub> = 1 − w<sub>f</sub> − w<sub>q</sub>)</div>
+            <div class="math-display">Uniformity: E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-display">Consistency: E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
+            <div class="math-note">(w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>; in Consistency, 1 − w<sub>f</sub> − w<sub>q</sub>)</div>
           </div>
           <ul>
-            <li><strong>σ<sub>c</sub></strong>: for each CVD type c, the ratio "color difference between neighbors as seen with CVD ÷ as seen normally" is computed, and σ<sub>c</sub> is its spread (standard deviation). It is 0 when the ratio is the same everywhere, meaning the pattern of color differences seen normally is preserved, proportionally, under CVD.</li>
-            <li><strong>F̂</strong>: the average deviation from the original colormap's neighboring color differences (ΔE<sub>00</sub>). The smaller it is, the closer to the original pattern.</li>
-            <li><strong>|C|</strong>: the number of selected CVD types. F compares how each type sees the colormap, so at least one must be selected.</li>
-            <li><strong>Q and S</strong>: the same as in Uniformity.</li>
+            <li><strong>U (Uniformity score)</strong>: checks whether the perceived color differences between neighboring colors are even.
+              <ul>
+                <li>Minimizes the coefficient of variation (standard deviation ÷ mean) of ΔE between adjacent slots.</li>
+              </ul>
+            </li>
+            <li><strong>F (Consistency score)</strong>: checks whether the original colormap's pattern of color differences is preserved under CVD.
+              <div class="formula-card">
+                <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂</div>
+              </div>
+              <ul>
+                <li><strong>σ<sub>c</sub></strong>: for each CVD type c, the ratio "color difference between neighbors as seen with CVD ÷ as seen normally" is computed, and σ<sub>c</sub> is its spread (standard deviation). It is 0 when the ratio is the same everywhere, meaning the pattern of color differences seen normally is preserved, proportionally, under CVD.</li>
+                <li><strong>F̂</strong>: the average deviation from the original colormap's neighboring color differences (ΔE<sub>00</sub>). The smaller it is, the closer to the original pattern.</li>
+                <li><strong>|C|</strong>: the number of selected CVD types. F compares how each type sees the colormap, so at least one must be selected.</li>
+              </ul>
+            </li>
+            <li><strong>Q (CVD contrast term)</strong>: checks that every pair of colors stays distinguishable under CVD.
+              <ul>
+                <li>Weighted so that the color difference does not fall below a target (half of the normal color difference, up to 30).</li>
+              </ul>
+            </li>
+            <li><strong>S (Smoothness)</strong>: checks how smooth the path the colormap draws in Lab space is (small changes of direction).</li>
           </ul>
           <div class="insight-box">
             In Consistency, 15 colors are taken from the chosen 256-color colormap at equal steps of color difference. After generation, the score is measured on the 256-color colormap at every 8th point plus the last one, and F is compared with the original colormap's color differences at the same points.
@@ -414,35 +452,16 @@ const CONTENT = {
       {
         id: 'optimization',
         icon: '⚡',
-        title: 'Optimization Engine',
+        title: 'How Optimization Works',
         body: `
           <p>Colormap Studio uses <strong>Simulated Annealing (SA)</strong> to automatically generate CVD-aware colormaps.</p>
-          <h3>Objective Function</h3>
-          <p>The optimization objective combines several components:</p>
-          <div class="formula-card">
-            <div class="math-display">E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
-            <div class="math-note">(w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>)</div>
-          </div>
-          <p>(The formula above is for Uniformity. Consistency uses F instead of U — see "Two Methods" above.)</p>
-          <ul>
-            <li><strong>U (Uniformity score)</strong>: Evaluates "consistency" of perceived color differences under CVD.
-              <ul>
-                <li>Minimizes the coefficient of variation (std dev / mean) of ΔE between adjacent slots.</li>
-              </ul>
-            </li>
-            <li><strong>Q (CVD contrast score)</strong>: Evaluates discriminability across all color pairs under CVD.
-              <ul>
-                <li>Performs a weighted evaluation ensuring that CVD color differences do not fall below a target value (half of normal ΔE, up to 30) for all color combinations.</li>
-              </ul>
-            </li>
-            <li><strong>S (Smoothness)</strong>: Evaluates the smoothness of the colormap path in Lab space.</li>
-          </ul>
+          <p>The objective function E that measures how good a colormap is (a weighted sum of U or F, Q and S) is explained in "Two Methods" above. This section explains how the colors that make E smaller are searched for.</p>
           <h3>Key Parameters</h3>
           <table class="param-table">
             <thead><tr><th>Parameter</th><th>Description</th><th>Default</th></tr></thead>
             <tbody>
-              <tr><td>w<sub>u</sub> (u_WEIGHT)</td><td>Uniformity (U) weight</td><td>0.1</td></tr>
-              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>CVD contrast (Q) weight</td><td>0.7</td></tr>
+              <tr><td>w<sub>u</sub> / w<sub>f</sub> (u_WEIGHT)</td><td>Uniformity (U) or Consistency (F) weight</td><td>0.1</td></tr>
+              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>CVD contrast (Q) weight</td><td>0.7 (Uniformity) / 0.8 (Consistency)</td></tr>
               <tr><td>S1_WEIGHT</td><td>Coefficient for smoothness (es)</td><td>1.0</td></tr>
               <tr><td>R</td><td>Movement bias radius for preference colors</td><td>7.0</td></tr>
               <tr><td>R'</td><td>Movement bias radius for non-preference colors</td><td>10.0</td></tr>
@@ -475,6 +494,25 @@ const CONTENT = {
         title: 'How to Use',
         body: `
           <p>Follow the steps below and you can build a CVD-aware colormap without any prior expertise. If it feels like a lot, the short version is: pick a preset, click "Optimize," and you already have a solid result.</p>
+          <div class="tutorial-figure">
+            <div class="ui-map" role="img" aria-label="Map of the Generator screen">
+              <div class="ui-map-nav"><span class="ui-map-tab on">Generator</span><span class="ui-map-tab">Test<b class="ui-badge">5</b></span><span class="ui-map-tab">Tutorial</span></div>
+              <div class="ui-map-body">
+                <div class="ui-map-left">
+                  <div class="ui-map-box"><span class="ui-map-cap">Method</span><span class="ui-map-seg"><i class="on">Uniformity</i><i>Consistency</i></span><b class="ui-badge">1</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Preset colormap</span><span class="ui-map-select">Viridis ▾</span><b class="ui-badge">1</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">CVD types</span><span class="ui-map-chips"><i>P-type</i><i>D-type</i><i class="off">T-type</i></span><b class="ui-badge">3</b></div>
+                  <div class="ui-map-box ui-map-optimize"><span class="ui-map-btn">Optimize</span><b class="ui-badge">4</b></div>
+                </div>
+                <div class="ui-map-right">
+                  <div class="ui-map-box"><span class="ui-map-cap">Candidates of specified colors</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Colormap preview / CVD simulation</span><span class="ui-map-bar"></span><span class="ui-map-bar ui-map-bar2"></span></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i></span><b class="ui-badge">6</b></div>
+                </div>
+              </div>
+            </div>
+            <p class="tutorial-caption">↑ A map of the Generator screen. Each numbered circle marks where you act in steps 1–6 below.</p>
+          </div>
           <div class="guide-steps">
             <div class="guide-step">
               <div class="guide-step-icon">1</div>

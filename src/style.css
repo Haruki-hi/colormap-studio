@@ -1977,4 +1977,35 @@ body[data-mode="consistency"] #scoreDisplay .score-label {
   color: #60a5fa;
 }
 
-
+/* ===== Tutorial: map of the Generator screen ===== */
+.ui-map { text-align: left; border: 1px solid var(--border-hover); border-radius: 10px; background: var(--bg-primary); padding: 10px; max-width: 760px; margin: 0 auto; font-size: 0.9rem; color: var(--text-secondary); }
+.ui-map-nav { display: flex; gap: 6px; margin-bottom: 10px; }
+.ui-map-tab { position: relative; padding: 4px 12px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border); }
+.ui-map-tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ui-map-body { display: grid; grid-template-columns: 2fr 3fr; gap: 10px; }
+.ui-map-left, .ui-map-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ui-map-box { align-items: flex-start; position: relative; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.ui-map-cap { font-weight: 600; color: var(--text-primary); }
+.ui-map-seg { display: flex; align-self: stretch; }
+.ui-map-seg i, .ui-map-chips i, .ui-map-exports i { font-style: normal; border: 1px solid var(--border-hover); padding: 2px 8px; }
+.ui-map-seg i { flex: 1; text-align: center; }
+.ui-map-seg i:first-child { border-radius: 6px 0 0 6px; }
+.ui-map-seg i:last-child { border-radius: 0 6px 6px 0; }
+.ui-map-seg i.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ui-map-select { border: 1px solid var(--border-hover); border-radius: 6px; padding: 2px 8px; }
+.ui-map-chips, .ui-map-exports { display: flex; flex-wrap: wrap; gap: 6px; }
+.ui-map-chips i, .ui-map-exports i { border-radius: 999px; }
+.ui-map-chips i.off { opacity: 0.45; }
+.ui-map-btn { align-self: stretch; text-align: center; padding: 6px; border-radius: 8px; color: #fff; font-weight: 700; background: linear-gradient(135deg, #6366f1, #ec4899); }
+.ui-map-strip { align-self: stretch; display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.ui-map-strip i { height: 26px; border-radius: 4px; border: 1px solid var(--border-hover); }
+.ui-map-strip i:nth-child(1) { background: #440154; } .ui-map-strip i:nth-child(2) { background: #482878; }
+.ui-map-strip i:nth-child(3) { background: #3e4a89; } .ui-map-strip i:nth-child(4) { background: #31688e; }
+.ui-map-strip i:nth-child(5) { background: #26828e; } .ui-map-strip i:nth-child(6) { background: #1f9e89; }
+.ui-map-strip i:nth-child(7) { background: #35b779; } .ui-map-strip i:nth-child(8) { background: #6ece58; }
+.ui-map-strip i:nth-child(9) { background: #b5de2b; } .ui-map-strip i:nth-child(10) { background: #fde725; }
+.ui-map-bar { align-self: stretch; height: 22px; border-radius: 4px; background: linear-gradient(90deg, #440154, #3e4a89, #26828e, #35b779, #b5de2b, #fde725); }
+.ui-map-bar2 { background: linear-gradient(90deg, #3a3a55, #4b5d8a, #6c8a8e, #98a56e, #cdbf50, #f0d94a); }
+.ui-badge { position: absolute; top: -10px; right: -8px; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #6366f1, #ec4899); color: #fff; font-size: 0.9rem; font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); }
+.ui-map-tab .ui-badge { top: -12px; right: -10px; }
+@media (max-width: 560px) { .ui-map-body { grid-template-columns: 1fr; } }

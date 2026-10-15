@@ -2,6 +2,13 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.3.4 — 2026-10-15
+
+### Changed
+- Tutorial: reworded "誤ったカラーマップ" (a colormap that does not convey differences in the data correctly), renamed "最適化エンジン" to "最適化のしくみ" / "How Optimization Works"
+- Tutorial: the objective function (U / F / Q / S, with both formulas) now lives in "Two Methods"; the optimization section only describes the search and the parameters (w_f and the Consistency default 0.8 added)
+- Tutorial: the How-to-use guide starts with a map of the Generator screen whose numbered circles match steps 1–6
+
 ## v1.3.3 — 2026-10-15
 
 ### Fixed
