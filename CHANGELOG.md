@@ -2,6 +2,11 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.3.1 — 2026-10-15
+
+### Fixed
+- Consistency: before anything is edited or generated, the score now shows the **original colormap's own** values (the "existing colormap" value of the research evaluator), so F̂ is exactly 0 and the heading reads "E · Consistency (original colormap)". Previously it scored the 15-color reconstruction of the original, which differs from the original (F̂ ≈ 1 for seis / ds9_a, ≈ 4 for Earth) — not a quantization effect. After a color is edited or a colormap is generated, the colormap being scored is the 15-color one, as before
+
 ## v1.3 — 2026-10-15
 
 ### Added

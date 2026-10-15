@@ -37,6 +37,7 @@ const state = {
   positions: null,
   reference: null,
   refAdj: null,
+  initialPoints: null, // Consistency: the representative colors as extracted (to tell "unmodified" from "edited")
 };
 
 // ===== DOM =====
@@ -205,7 +206,7 @@ function loadPoints(points) {
   state.optimizedSlots = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
-  state.positions = null; state.reference = null; state.refAdj = null;
+  state.positions = null; state.reference = null; state.refAdj = null; state.initialPoints = null;
   for (let i = 0; i < N_SLOTS; i++) {
     state.slots[i] = { L: points[i].L, a: points[i].a, b: points[i].b };
     state.prefIndices.add(i);
@@ -218,7 +219,7 @@ function loadPreset(name) {
   state.optimizedSlots = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
-  state.positions = null; state.reference = null; state.refAdj = null;
+  state.positions = null; state.reference = null; state.refAdj = null; state.initialPoints = null;
   if (name === 'custom') {
     for (let i = 0; i < N_SLOTS; i++) state.slots[i] = null;
     // sRGB red (255,0,0) and blue (0,0,255) in CIE L*a*b*
@@ -337,6 +338,7 @@ function loadLab256(lab256) {
   state.positions = positions;
   state.reference = lab256;
   state.refAdj = adjacentDeltaE(points);
+  state.initialPoints = points.map(q => ({ ...q }));
   hidePicker();
   renderAll();
 }
@@ -903,6 +905,32 @@ function evalScoreGap(fullLs, fullAs, fullBs, params, returnDetails = false) {
 }
 
 // Breakdown of the score: U′ = 100·U, F′ = 100·F, Q′ and S′ = 1000·Q, 1000·S
+// Consistency, before anything is generated or edited: the colormap in the strip is the original,
+// so the score shown is the ORIGINAL 256-color colormap's own (F̂ = 0 by definition) — the same
+// "existing colormap" value the research evaluator gives. Once a color is edited or a colormap is
+// generated, the colormap being scored is the 15-color reconstruction instead.
+function isOriginalUnmodified() {
+  if (state.mode !== 'consistency' || !state.reference || !state.initialPoints || state.optimizedSlots) return false;
+  for (let i = 0; i < N_SLOTS; i++) {
+    const s = state.slots[i], q = state.initialPoints[i];
+    if (!s || Math.abs(s.L - q.L) > 1e-9 || Math.abs(s.a - q.a) > 1e-9 || Math.abs(s.b - q.b) > 1e-9) return false;
+  }
+  return true;
+}
+
+function evalOriginalGap(params, returnDetails = false) {
+  const idx = gapIndices();
+  const m = idx.length;
+  const ls = new Float64Array(m), as = new Float64Array(m), bs = new Float64Array(m);
+  for (let j = 0; j < m; j++) {
+    ls[j] = state.reference[idx[j]][0];
+    as[j] = state.reference[idx[j]][1];
+    bs[j] = state.reference[idx[j]][2];
+  }
+  const dInit = adjacentDeltaE(Array.from(ls, (_, j) => ({ L: ls[j], a: as[j], b: bs[j] })));
+  return eScore(ls, as, bs, m, dInit, params, returnDetails);
+}
+
 function renderScoreDetails(d, params) {
   const item = (label, value) =>
     `<div class="score-detail-item"><span class="score-detail-label">${label}:</span> <span class="score-detail-value">${value}</span></div>`;
@@ -962,7 +990,11 @@ function renderStats() {
     }
   }
 
-  const scoreData = evalScoreGap(full.fullLs, full.fullAs, full.fullBs, params, true);
+  const original = isOriginalUnmodified();
+  const scoreData = original
+    ? evalOriginalGap(params, true)
+    : evalScoreGap(full.fullLs, full.fullAs, full.fullBs, params, true);
+  $('#scoreDisplay .score-label').textContent = MODE_INFO[state.mode].scoreLabel + (original ? ' (original colormap)' : '') + ':';
 
   $('#scoreDisplay').style.display = 'flex';
   $('#scoreValue').textContent = scoreData.finalScore.toFixed(5);
@@ -1304,7 +1336,7 @@ function startOptimization() {
   let lastTrajectoryUpdate = 0;
   const TRAJECTORY_UPDATE_INTERVAL = 100;
   // Pre-generation evaluation, on the same gap-subsampled basis as the post-generation one
-  const initialEval = evalScoreGap(fullLs, fullAs, fullBs, params);
+  const initialEval = isOriginalUnmodified() ? evalOriginalGap(params) : evalScoreGap(fullLs, fullAs, fullBs, params);
 
   worker.onmessage = (e) => {
     const msg = e.data;
