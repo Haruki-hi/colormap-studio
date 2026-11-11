@@ -97,7 +97,7 @@ const CONTENT = {
             </div>
           </div>
           <div class="insight-box">
-            Colormap Studio のシミュレーションと最適化は、P型・D型・T型の <strong>2 色覚</strong>（3 種類の錐体のうち 1 種類がはたらかない場合）の見え方をもとにしています。色の感じ方には個人差があり、程度の軽い場合（異常 3 色覚）の見え方は、ここで示すものと通常の見え方の中間になります。
+            Colormap Studio のシミュレーションと最適化は、P型・D型・T型の <strong>2 色覚</strong>（3 種類の錐体のうち 1 種類がはたらかない場合）の見え方をもとにしています。
           </div>
           <h3>CVD シミュレーション体験</h3>
           <p>以下の画像で、各 CVD タイプでどのように見えるかを確認できます。</p>
@@ -383,7 +383,7 @@ const CONTENT = {
             </div>
           </div>
           <div class="insight-box">
-            The simulation and optimization in Colormap Studio are based on <strong>dichromacy</strong> of the P, D and T types (one of the three kinds of cones does not function). Color vision differs from person to person, and milder cases (anomalous trichromacy) see something between what is shown here and normal vision.
+            The simulation and optimization in Colormap Studio are based on <strong>dichromacy</strong> of the P, D and T types (one of the three kinds of cones does not function).
           </div>
           <h3>CVD Simulation Experience</h3>
           <p>See how each CVD type perceives the same image below.</p>

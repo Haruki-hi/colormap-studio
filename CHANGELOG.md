@@ -2,6 +2,12 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.4.1 — 2026-11-11
+
+### Changed
+- Tutorial: the note on what the CVD simulation covers now only states that it is based on dichromacy
+- `LICENSE`: copyright holders are Haruki Hisazaki and Go Tanaka (Graduate School of Science, Nagoya City University)
+
 ## v1.4 — 2026-11-11
 
 ### Added
