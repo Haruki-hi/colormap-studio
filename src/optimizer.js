@@ -581,7 +581,8 @@ export function runSA(initialLs, initialAs, initialBs, prefIndices, params, onPr
   const qs = consistency ? psiInit(lsCur, asCur, bsCur, n, consistencyTypes(params)) : null;
 
   // RNG seed
-  const seed = [Date.now() & 0xFFFFFFFF];
+  // params.seed (a 32-bit integer) makes a run reproducible; without it the clock is used, as before
+  const seed = [Number.isFinite(params.seed) ? (params.seed >>> 0) : (Date.now() & 0xFFFFFFFF)];
   if (seed[0] === 0) seed[0] = 1;
 
   let t = tInit;

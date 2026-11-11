@@ -203,6 +203,10 @@
                 <label>Iterations</label>
                 <input type="number" id="paramIter" value="5500" step="100" min="100" />
               </div>
+              <div class="param-row">
+                <label title="Random seed. Leave empty for a different result each time; enter the seed of an earlier run to reproduce it.">Seed</label>
+                <input type="number" id="paramSeed" placeholder="random" step="1" min="1" max="4294967295" />
+              </div>
             </div>
           </details>
 
@@ -256,6 +260,10 @@
             <div class="colormap-labels">
               <span>0</span><span>64</span><span>128</span><span>192</span><span>255</span>
             </div>
+            <div class="before-block" hidden>
+              <span class="before-caption">Before optimization</span>
+              <canvas class="colormap-bar" height="30" data-before="N"></canvas>
+            </div>
           </div>
 
           <!-- CVD Previews -->
@@ -263,14 +271,26 @@
             <div class="control-group" id="cvdPreviewP" style="display:none">
               <label class="control-label cvd-label-p">P-type (Protan) simulation</label>
               <canvas class="colormap-bar" height="30" data-cvd="P"></canvas>
+              <div class="before-block" hidden>
+                <span class="before-caption">Before optimization</span>
+                <canvas class="colormap-bar" height="30" data-before="P"></canvas>
+              </div>
             </div>
             <div class="control-group" id="cvdPreviewD" style="display:none">
               <label class="control-label cvd-label-d">D-type (Deutan) simulation</label>
               <canvas class="colormap-bar" height="30" data-cvd="D"></canvas>
+              <div class="before-block" hidden>
+                <span class="before-caption">Before optimization</span>
+                <canvas class="colormap-bar" height="30" data-before="D"></canvas>
+              </div>
             </div>
             <div class="control-group" id="cvdPreviewT" style="display:none">
               <label class="control-label cvd-label-t">T-type (Tritan) simulation</label>
               <canvas class="colormap-bar" height="30" data-cvd="T"></canvas>
+              <div class="before-block" hidden>
+                <span class="before-caption">Before optimization</span>
+                <canvas class="colormap-bar" height="30" data-before="T"></canvas>
+              </div>
             </div>
           </div>
 
@@ -283,6 +303,7 @@
           <div class="score-details" id="scoreDetails" style="display:none">
             <!-- Breakdown will be injected here -->
           </div>
+          <div class="run-info" id="runInfo" hidden></div>
 
           <!-- Export -->
           <div class="export-section">
@@ -307,6 +328,9 @@
               </div>
               <div class="export-item">
                 <button class="btn-export" id="btnExportPNG">⬇ PNG</button>
+              </div>
+              <div class="export-item">
+                <button class="btn-export" id="btnExportPy" title="A Python file that defines the colormap for matplotlib">⬇ Python (matplotlib)</button>
               </div>
             </div>
           </div>
@@ -501,9 +525,11 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <span class="app-footer-version">Colormap Studio v1.3.4</span>
+      <span class="app-footer-version">Colormap Studio v1.4</span>
       <span class="app-footer-sep">·</span>
       <a href="mailto:c257720@ed.nagoya-cu.ac.jp" class="app-footer-contact">Questions / bug reports: c257720@ed.nagoya-cu.ac.jp</a>
+      <span class="app-footer-sep">·</span>
+      <span>Colormaps you create here are free to use. Code: MIT License</span>
     </footer>
 
   </div>

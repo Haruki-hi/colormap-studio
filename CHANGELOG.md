@@ -2,6 +2,20 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.4 — 2026-11-11
+
+### Added
+- **Seed** (Advanced parameters): leave it empty for a different result each time, or enter the seed of an earlier run to reproduce it. The seed used by the last run is shown below the score
+- **Before/after comparison**: after an optimization, the colormap before the run is drawn under each preview bar (normal and each CVD simulation) and every score is shown as "before → after"
+- **Python (matplotlib) export**: `colormap.py` defines `cmap` / `cmap_r` (`ListedColormap`) and can be imported as is
+- **Conditions recorded in exports**: the JSON and Python files carry the method, source colormap, CVD types, weights and SA parameters, seed, scores before/after, app version and the representative colors
+- Tutorial: what the CVD simulation covers (dichromacy), the upload stays in the browser, seed, before/after, the new export, free use of the colormaps made here
+- `LICENSE` (MIT for the code; colormaps made with the site are free to use)
+
+### Changed
+- JSON export is now `{ "metadata": {...}, "colors": [...] }` (it was a bare array of colors). CSV and PNG are unchanged
+- Narrow screens: the page no longer scrolls sideways
+
 ## v1.3.4 — 2026-10-15
 
 ### Changed

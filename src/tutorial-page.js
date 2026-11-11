@@ -96,6 +96,9 @@ const CONTENT = {
               <p>青色の感度が低い。比較的まれですが、青と黄の区別が困難になります。</p>
             </div>
           </div>
+          <div class="insight-box">
+            Colormap Studio のシミュレーションと最適化は、P型・D型・T型の <strong>2 色覚</strong>（3 種類の錐体のうち 1 種類がはたらかない場合）の見え方をもとにしています。色の感じ方には個人差があり、程度の軽い場合（異常 3 色覚）の見え方は、ここで示すものと通常の見え方の中間になります。
+          </div>
           <h3>CVD シミュレーション体験</h3>
           <p>以下の画像で、各 CVD タイプでどのように見えるかを確認できます。</p>
           <div class="tutorial-cvd-demo" id="tutorialCvdDemo">
@@ -187,6 +190,7 @@ const CONTENT = {
               <tr><td>S1_WEIGHT</td><td>滑らかさ（es）の計算時の係数</td><td>1.0</td></tr>
               <tr><td>R</td><td>プリファレンス色の移動バイアス半径</td><td>7.0</td></tr>
               <tr><td>R'</td><td>非プリファレンス色の移動バイアス半径</td><td>10.0</td></tr>
+              <tr><td>Seed</td><td>乱数の種。同じ設定で同じ種を入れると、同じ結果を再現できます</td><td>空欄（毎回変わる）</td></tr>
             </tbody>
           </table>
           <h3>SAのプロセス</h3>
@@ -229,7 +233,7 @@ const CONTENT = {
                 <div class="ui-map-right">
                   <div class="ui-map-box"><span class="ui-map-cap">Candidates of specified colors</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
                   <div class="ui-map-box"><span class="ui-map-cap">Colormap preview / CVD simulation</span><span class="ui-map-bar"></span><span class="ui-map-bar ui-map-bar2"></span></div>
-                  <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i></span><b class="ui-badge">6</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i><i>⬇ Python</i></span><b class="ui-badge">6</b></div>
                 </div>
               </div>
             </div>
@@ -241,7 +245,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>ベースとなる配色を選ぶ</h4>
                 <p>最初に、左上の「Method」で手法を選びます。隣り合う色の差をそろえたいときは「Uniformity（均等性）」、元のカラーマップが持つ色差のパターンを保ちたいときは「Consistency（整合性）」です（違いは上の「2 つの手法」を参照）。整合性では既存のカラーマップから始めるため、Custom はありません。</p>
-                <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。手持ちのカラーマップを高性能化したいときは「Upload colormap (image / CSV)…」を選び、横長のカラーマップ画像（PNG・JPEG・BMP・PPM）か、RGB または L*a*b* の CSV を読み込んでください。そこから 15 色が取り出されて並び、そのまま「Optimize」できます。</p>
+                <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。手持ちのカラーマップを高性能化したいときは「Upload colormap (image / CSV)…」を選び、横長のカラーマップ画像（PNG・JPEG・BMP・PPM）か、RGB または L*a*b* の CSV を読み込んでください。そこから 15 色が取り出されて並び、そのまま「Optimize」できます。読み込んだファイルはお使いのブラウザの中だけで処理され、サーバーには送信されません。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -266,6 +270,8 @@ const CONTENT = {
                 <h4>「Optimize」で自動調整する</h4>
                 <p>「Optimize」ボタンを押すと、自分で選んだ色はできるだけ保ちながら、色を置いていない部分をコンピュータが自動的に調整します。目的は、チェックしたどの CVD タイプで見ても隣どうしの色がきちんと区別できるようにすることです。</p>
                 <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。あわせて表示される U′・Q′・S′ は、均等性 U を 100 倍、コントラスト Q と滑らかさ S を 1000 倍した値です（いずれも小さいほど良い）。整合性では U′ の代わりに F′（整合性 F の 100 倍）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
+                <p>完了すると、各プレビューバーの下に最適化前のカラーマップ（Before optimization）が並び、スコアも「最適化前 → 最適化後」の形で表示されるので、どれだけ変わったかを見比べられます。</p>
+                <p>結果は実行のたびに少しずつ変わります。スコアの下に、その実行で使われた乱数の種（seed）が表示されます。同じ結果をもう一度作りたいときは、「Advanced parameters」の「Seed」にその数を入れ、同じ設定で実行してください。</p>
               </div>
             </div>
             <div class="guide-step">
@@ -280,7 +286,9 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>気に入った配色を保存する</h4>
                 <p>「Export」から、用途に合わせて保存できます。</p>
-                <p><strong>JSON</strong>：他のプログラムやツールに読み込ませるためのデータ形式です。<strong>CSV</strong>：Excel などの表計算ソフトでそのまま開ける数値の一覧です。<strong>PNG</strong>：カラーマップを帯状の画像として保存します。資料やスライドに貼り付けたいときに便利です。</p>
+                <p><strong>JSON</strong>：他のプログラムやツールに読み込ませるためのデータ形式です。<strong>CSV</strong>：Excel などの表計算ソフトでそのまま開ける数値の一覧です。<strong>PNG</strong>：カラーマップを帯状の画像として保存します。資料やスライドに貼り付けたいときに便利です。<strong>Python (matplotlib)</strong>：Python のグラフ描画ライブラリ matplotlib でそのまま使えるファイル（colormap.py）です。自分のプログラムと同じフォルダに置き、<code>from colormap import cmap</code> と書いて <code>plt.imshow(data, cmap=cmap)</code> のように使います。</p>
+                <p>JSON と Python のファイルには、作成時の条件（手法、元のカラーマップ、色覚タイプ、重み、乱数の種、スコア、アプリのバージョン）も記録されます。論文などで作成条件を示すときに使えます。</p>
+                <p>このサイトで作成したカラーマップは、出典の表記なしで自由にお使いいただけます。</p>
               </div>
             </div>
           </div>
@@ -374,6 +382,9 @@ const CONTENT = {
               <p>Reduced sensitivity to blue light. Relatively rare, with difficulty distinguishing blue from yellow.</p>
             </div>
           </div>
+          <div class="insight-box">
+            The simulation and optimization in Colormap Studio are based on <strong>dichromacy</strong> of the P, D and T types (one of the three kinds of cones does not function). Color vision differs from person to person, and milder cases (anomalous trichromacy) see something between what is shown here and normal vision.
+          </div>
           <h3>CVD Simulation Experience</h3>
           <p>See how each CVD type perceives the same image below.</p>
           <div class="tutorial-cvd-demo" id="tutorialCvdDemo">
@@ -465,6 +476,7 @@ const CONTENT = {
               <tr><td>S1_WEIGHT</td><td>Coefficient for smoothness (es)</td><td>1.0</td></tr>
               <tr><td>R</td><td>Movement bias radius for preference colors</td><td>7.0</td></tr>
               <tr><td>R'</td><td>Movement bias radius for non-preference colors</td><td>10.0</td></tr>
+              <tr><td>Seed</td><td>Random seed. The same seed with the same settings reproduces the same result</td><td>empty (different each time)</td></tr>
             </tbody>
           </table>
           <h3>SA Process</h3>
@@ -507,7 +519,7 @@ const CONTENT = {
                 <div class="ui-map-right">
                   <div class="ui-map-box"><span class="ui-map-cap">Candidates of specified colors</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
                   <div class="ui-map-box"><span class="ui-map-cap">Colormap preview / CVD simulation</span><span class="ui-map-bar"></span><span class="ui-map-bar ui-map-bar2"></span></div>
-                  <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i></span><b class="ui-badge">6</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i><i>⬇ Python</i></span><b class="ui-badge">6</b></div>
                 </div>
               </div>
             </div>
@@ -519,7 +531,7 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Choose a starting colormap</h4>
                 <p>First, choose a method with "Method" at the top left. Pick "Uniformity" to make the color difference between neighboring colors equal, or "Consistency" to keep the original colormap's own pattern of color differences (see "Two Methods" above for the difference). Consistency starts from an existing colormap, so it has no Custom.</p>
-                <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in. If you already have a colormap you want to improve, choose "Upload colormap (image / CSV)…" and load a horizontal colormap image (PNG, JPEG, BMP or PPM) or a CSV of RGB or L*a*b* values; 15 colors are extracted from it and placed in the strip, ready for "Optimize."</p>
+                <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in. If you already have a colormap you want to improve, choose "Upload colormap (image / CSV)…" and load a horizontal colormap image (PNG, JPEG, BMP or PPM) or a CSV of RGB or L*a*b* values; 15 colors are extracted from it and placed in the strip, ready for "Optimize." The file is read inside your browser only; it is not sent to any server.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -544,6 +556,8 @@ const CONTENT = {
                 <h4>Click "Optimize" to auto-adjust</h4>
                 <p>Clicking "Optimize" keeps the colors you deliberately chose roughly in place while automatically adjusting the colors you left unset. The goal is to make sure adjacent colors stay distinguishable for every CVD type you checked in the previous step.</p>
                 <p>The progress bar shows a completion percentage and a score called "E" (lower is better). The U′, Q′ and S′ values shown alongside are the uniformity U multiplied by 100 and the contrast Q and smoothness S multiplied by 1000 (lower is better for all of them). In Consistency, F′ (100 times the consistency term F) is shown instead of U′. This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
+                <p>When it finishes, the colormap before optimization appears under each preview bar ("Before optimization"), and the scores are shown as "before → after," so you can see how much has changed.</p>
+                <p>The result differs a little from run to run. The random seed used by the run is shown below the score. To get the same result again, enter that number in "Seed" under "Advanced parameters" and run with the same settings.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -558,7 +572,9 @@ const CONTENT = {
               <div class="guide-step-content">
                 <h4>Save your colormap</h4>
                 <p>Use "Export" to save the result in the format you need.</p>
-                <p><strong>JSON</strong>: data meant to be loaded by another program or tool. <strong>CSV</strong>: a plain list of numbers you can open directly in Excel or similar spreadsheet software. <strong>PNG</strong>: the colormap saved as a color-bar image, handy for pasting into a document or slide.</p>
+                <p><strong>JSON</strong>: data meant to be loaded by another program or tool. <strong>CSV</strong>: a plain list of numbers you can open directly in Excel or similar spreadsheet software. <strong>PNG</strong>: the colormap saved as a color-bar image, handy for pasting into a document or slide. <strong>Python (matplotlib)</strong>: a file (colormap.py) ready to use with the Python plotting library matplotlib. Put it next to your script, write <code>from colormap import cmap</code>, and use it as in <code>plt.imshow(data, cmap=cmap)</code>.</p>
+                <p>The JSON and Python files also record the conditions under which the colormap was made (method, source colormap, CVD types, weights, random seed, scores and the app version), which you can use to report how it was made, for example in a paper.</p>
+                <p>Colormaps you create on this site are free to use, with no attribution required.</p>
               </div>
             </div>
           </div>

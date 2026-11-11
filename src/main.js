@@ -18,6 +18,7 @@ import { lab256FromEntries, arcLengthExtract, adjacentDeltaE, gapIndices } from 
 
 // ===== Constants =====
 const N_SLOTS = 15;
+const APP_VERSION = '1.4';
 const GAMUT_RANGE = 128; // a*, b* range: [-128, 128]
 
 // ===== State =====
@@ -38,6 +39,9 @@ const state = {
   reference: null,
   refAdj: null,
   initialPoints: null, // Consistency: the representative colors as extracted (to tell "unmodified" from "edited")
+  // The last optimization run: its seed and conditions, and the colormap and score before it
+  // (for the before/after comparison and for the conditions recorded in exported files)
+  lastRun: null,
 };
 
 // ===== DOM =====
@@ -203,7 +207,7 @@ export function getSharedColormap() {
 // Fill every slot with the N_SLOTS colors extracted from the uploaded file (all slots are
 // specified colors, like a preset), ready for "Optimize".
 function loadPoints(points, lab256 = null) {
-  state.optimizedSlots = null;
+  state.optimizedSlots = null; state.lastRun = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
   state.positions = null; state.reference = null; state.refAdj = null; state.initialPoints = null;
@@ -221,7 +225,7 @@ function loadPoints(points, lab256 = null) {
 }
 
 function loadPreset(name) {
-  state.optimizedSlots = null;
+  state.optimizedSlots = null; state.lastRun = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
   state.positions = null; state.reference = null; state.refAdj = null; state.initialPoints = null;
@@ -278,6 +282,7 @@ const RESEARCH_MAPS = [
   ['ds9_a', 'ds9_a'], ['ds9_b', 'ds9_b'], ['earth', 'Earth'], ['drywet', 'Drywet'], ['world', 'World'], ['seis', 'Seis'],
 ];
 
+const UPLOAD_PRIVACY = 'The file is read inside your browser only; it is not sent to any server.';
 let lastPreset = 'turbo';  // the preset selection that is currently loaded
 let uploaded = null;       // { entries, space, info, name } from the last successful upload
 
@@ -338,7 +343,7 @@ function buildPresetOptions() {
 // color difference (arc length) and remember where they are, plus the original for evaluation.
 function loadLab256(lab256) {
   const { points, positions } = arcLengthExtract(lab256, N_SLOTS);
-  state.optimizedSlots = null;
+  state.optimizedSlots = null; state.lastRun = null;
   state.selectedSlot = -1;
   state.prefIndices.clear();
   for (let i = 0; i < N_SLOTS; i++) {
@@ -365,10 +370,10 @@ function loadSelected(v) {
   if (v === 'uploaded' && uploaded) {
     if (consistency) {
       loadLab256(lab256FromEntries(uploaded.entries, uploaded.space));
-      setUploadNote(`${uploaded.info} → ${N_SLOTS} colors (equal color-difference steps)`);
+      setUploadNote(`${uploaded.info} → ${N_SLOTS} colors (equal color-difference steps). ${UPLOAD_PRIVACY}`);
     } else {
       loadPoints(extractPoints(uploaded.entries, N_SLOTS, uploaded.space), lab256FromEntries(uploaded.entries, uploaded.space));
-      setUploadNote(`${uploaded.info} → ${N_SLOTS} colors`);
+      setUploadNote(`${uploaded.info} → ${N_SLOTS} colors. ${UPLOAD_PRIVACY}`);
     }
     return;
   }
@@ -759,6 +764,29 @@ function renderColormapPreview() {
     const sim = simulateCVD(interp, simTBrettel);
     drawColormapBar($('#cvdPreviewT canvas'), sim);
   }
+
+  // After an optimization: the colormap before that run, under each bar, for comparison
+  const before = lastRunShown() ? state.lastRun.before.interp : null;
+  const sims = { N: null, P: simPBrettel, D: simDBrettel, T: simTBrettel };
+  for (const key of Object.keys(sims)) {
+    const canvas = $(`canvas[data-before="${key}"]`);
+    canvas.parentElement.hidden = !before;
+    if (before) drawColormapBar(canvas, sims[key] ? simulateCVD(before, sims[key]) : before);
+  }
+}
+
+// True while the colormap on screen comes from the last optimization run
+function lastRunShown() {
+  return !!(state.lastRun && state.optimizedSlots);
+}
+
+// ...and has not been edited by hand since
+function lastRunIntact() {
+  if (!lastRunShown()) return false;
+  return state.lastRun.result.every((q, i) => {
+    const s = state.optimizedSlots[i];
+    return s && Math.abs(s.L - q.L) < 1e-9 && Math.abs(s.a - q.a) < 1e-9 && Math.abs(s.b - q.b) < 1e-9;
+  });
 }
 
 function clearCanvas(canvas) {
@@ -942,31 +970,46 @@ function evalOriginalGap(params, returnDetails = false) {
   return eScore(ls, as, bs, m, dInit, params, returnDetails);
 }
 
-function renderScoreDetails(d, params) {
-  const item = (label, value) =>
-    `<div class="score-detail-item"><span class="score-detail-label">${label}:</span> <span class="score-detail-value">${value}</span></div>`;
+// `before` (optional): the same breakdown before the last optimization; each value is then shown as "before → now"
+function renderScoreDetails(d, params, before = null) {
+  const item = (label, key, scale, digits) => {
+    const now = (d[key] * scale).toFixed(digits);
+    const value = before ? `<span class="score-detail-before">${(before[key] * scale).toFixed(digits)} →</span> ${now}` : now;
+    return `<div class="score-detail-item"><span class="score-detail-label">${label}:</span> <span class="score-detail-value">${value}</span></div>`;
+  };
   let html = '';
   if (params.mode === 'consistency') {
-    html += item('F′ (Consistency)', (d.F * 100).toFixed(1));
-    if (params.UP) html += item('FP′ (Consistency P)', (d.fP * 100).toFixed(1)) + item('QP′ (Contrast P)', (d.ePPsi * 1000).toFixed(1));
-    if (params.UD) html += item('FD′ (Consistency D)', (d.fD * 100).toFixed(1)) + item('QD′ (Contrast D)', (d.eDPsi * 1000).toFixed(1));
-    if (params.UT) html += item('FT′ (Consistency T)', (d.fT * 100).toFixed(1)) + item('QT′ (Contrast T)', (d.eTPsi * 1000).toFixed(1));
-    html += item('F̂ (Mean ΔE shift)', d.fHat.toFixed(2));
-    html += item('S′ (Smoothness)', (d.es * 1000).toFixed(1));
+    html += item('F′ (Consistency)', 'F', 100, 1);
+    if (params.UP) html += item('FP′ (Consistency P)', 'fP', 100, 1) + item('QP′ (Contrast P)', 'ePPsi', 1000, 1);
+    if (params.UD) html += item('FD′ (Consistency D)', 'fD', 100, 1) + item('QD′ (Contrast D)', 'eDPsi', 1000, 1);
+    if (params.UT) html += item('FT′ (Consistency T)', 'fT', 100, 1) + item('QT′ (Contrast T)', 'eTPsi', 1000, 1);
+    html += item('F̂ (Mean ΔE shift)', 'fHat', 1, 2);
+    html += item('S′ (Smoothness)', 'es', 1000, 1);
   } else {
-    html += item('UN′ (Uniformity N)', (d.eu * 100).toFixed(1));
-    if (params.UP) html += item('UP′ (Uniformity P)', (d.euP * 100).toFixed(1)) + item('QP′ (Contrast P)', (d.ePPsi * 1000).toFixed(1));
-    if (params.UD) html += item('UD′ (Uniformity D)', (d.euD * 100).toFixed(1)) + item('QD′ (Contrast D)', (d.eDPsi * 1000).toFixed(1));
-    if (params.UT) html += item('UT′ (Uniformity T)', (d.euT * 100).toFixed(1)) + item('QT′ (Contrast T)', (d.eTPsi * 1000).toFixed(1));
-    html += item('S′ (Smoothness)', (d.es * 1000).toFixed(1));
+    html += item('UN′ (Uniformity N)', 'eu', 100, 1);
+    if (params.UP) html += item('UP′ (Uniformity P)', 'euP', 100, 1) + item('QP′ (Contrast P)', 'ePPsi', 1000, 1);
+    if (params.UD) html += item('UD′ (Uniformity D)', 'euD', 100, 1) + item('QD′ (Contrast D)', 'eDPsi', 1000, 1);
+    if (params.UT) html += item('UT′ (Uniformity T)', 'euT', 100, 1) + item('QT′ (Contrast T)', 'eTPsi', 1000, 1);
+    html += item('S′ (Smoothness)', 'es', 1000, 1);
   }
   const detailsEl = $('#scoreDetails');
   detailsEl.style.display = 'grid';
   detailsEl.innerHTML = html;
 }
 
+// The seed of the last run, so that it can be reproduced
+function renderRunInfo() {
+  const el = $('#runInfo');
+  el.hidden = !lastRunShown();
+  if (el.hidden) return;
+  el.textContent = `Last optimization: seed ${state.lastRun.seed}`
+    + (lastRunIntact() ? '' : ' (colors edited by hand afterwards)')
+    + '. To reproduce it, enter this seed in "Advanced parameters" with the same settings.';
+}
+
 function renderStats() {
   if (state.isOptimizing) return;
+  renderRunInfo();
   const full = getFullSlots();
   if (!full) {
     $('#scoreDisplay').style.display = 'none';
@@ -1007,9 +1050,16 @@ function renderStats() {
     : evalScoreGap(full.fullLs, full.fullAs, full.fullBs, params, true);
   $('#scoreDisplay .score-label').textContent = MODE_INFO[state.mode].scoreLabel + (original ? ' (original colormap)' : '') + ':';
 
+  // Before → after, while the evaluation settings are still those of the last run
+  const run = lastRunShown() ? state.lastRun : null;
+  const before = run && ['UP', 'UD', 'UT', 'S1_WEIGHT', 'u_WEIGHT', 'q_WEIGHT', 'mode'].every(k => run.params[k] === params[k])
+    ? run.before.score : null;
+
   $('#scoreDisplay').style.display = 'flex';
-  $('#scoreValue').textContent = scoreData.finalScore.toFixed(5);
-  renderScoreDetails(scoreData, params);
+  $('#scoreValue').textContent = before
+    ? `${before.finalScore.toFixed(5)} → ${scoreData.finalScore.toFixed(5)}`
+    : scoreData.finalScore.toFixed(5);
+  renderScoreDetails(scoreData, params, before);
 }
 
 // ===== Render All =====
@@ -1334,6 +1384,8 @@ function startOptimization() {
     R: parseFloat($('#paramR').value),
     R_dash: parseFloat($('#paramRDash').value),
     mode: state.mode,
+    // Seed: the one typed in, otherwise a fresh random one (recorded, so the run can be reproduced)
+    seed: readSeed(),
     // Consistency: adjacent dE of the ORIGINAL representative colors (the reference to stay close to)
     dInitial: state.mode === 'consistency' ? Array.from(state.refAdj) : null,
   };
@@ -1347,7 +1399,10 @@ function startOptimization() {
   let lastTrajectoryUpdate = 0;
   const TRAJECTORY_UPDATE_INTERVAL = 100;
   // Pre-generation evaluation, on the same gap-subsampled basis as the post-generation one
-  const initialEval = isOriginalUnmodified() ? evalOriginalGap(params) : evalScoreGap(fullLs, fullAs, fullBs, params);
+  const beforeRun = {
+    score: isOriginalUnmodified() ? evalOriginalGap(params, true) : evalScoreGap(fullLs, fullAs, fullBs, params, true),
+    interp: getExportData().interp,
+  };
 
   worker.onmessage = (e) => {
     const msg = e.data;
@@ -1414,10 +1469,15 @@ function startOptimization() {
       // Evaluate the generated colormap (gap-subsampled), not the SA objective on the representative colors
       const finalEval = evalScoreGap(msg.controlPoints.ls, msg.controlPoints.as, msg.controlPoints.bs, params, true);
 
-      $('#scoreDisplay').style.display = 'flex';
-      $('#scoreValue').textContent = `${initialEval.toFixed(5)} → ${finalEval.finalScore.toFixed(5)}`;
-
-      renderScoreDetails(finalEval, params);
+      const { dInitial, ...runParams } = params;
+      state.lastRun = {
+        seed: params.seed,
+        params: runParams,
+        source: sourceName(),
+        before: beforeRun,
+        afterScore: finalEval.finalScore,
+        result: state.optimizedSlots.map(q => ({ ...q })),
+      };
 
       renderAll();
       if (state.selectedSlot >= 0) showPicker(state.selectedSlot);
@@ -1435,7 +1495,47 @@ function startOptimization() {
   });
 }
 
+function readSeed() {
+  const v = parseInt($('#paramSeed').value);
+  if (Number.isFinite(v) && v > 0) return v >>> 0;
+  return Math.floor(Math.random() * 0xFFFFFFFE) + 1;
+}
+
+function sourceName() {
+  if (lastPreset === 'uploaded' && uploaded) return `upload: ${uploaded.name}`;
+  return lastPreset;
+}
+
 // ===== Export =====
+// The conditions under which the exported colormap was made (written into the JSON and Python files)
+function buildMetadata() {
+  const pts = state.optimizedSlots || state.slots;
+  const run = lastRunShown() ? state.lastRun : null;
+  const r4 = v => +v.toFixed(4);
+  const meta = {
+    generator: 'Colormap Studio',
+    version: APP_VERSION,
+    exported: new Date().toISOString(),
+    method: MODE_INFO[state.mode].name,
+    source_colormap: run ? run.source : sourceName(),
+    optimized: !!run,
+  };
+  if (run) {
+    const p = run.params;
+    meta.edited_after_optimization = !lastRunIntact();
+    meta.seed = run.seed;
+    meta.cvd_types = ['P', 'D', 'T'].filter(t => p['U' + t]);
+    meta.parameters = {
+      [p.mode === 'consistency' ? 'f_WEIGHT' : 'u_WEIGHT']: p.u_WEIGHT, q_WEIGHT: p.q_WEIGHT, S1_WEIGHT: p.S1_WEIGHT,
+      R: p.R, R_dash: p.R_dash, T_init: p.tInit, T_end: p.tEnd, alpha: p.alpha, iterations: p.iterCount,
+    };
+    meta.score_E = { before: +run.before.score.finalScore.toFixed(6), after: +run.afterScore.toFixed(6) };
+  }
+  meta.representative_colors_lab = pts.map(q => (q ? [r4(q.L), r4(q.a), r4(q.b)] : null));
+  if (state.mode === 'consistency' && state.positions) meta.representative_positions = Array.from(state.positions, r4);
+  return meta;
+}
+
 function getExportData() {
   const { colors } = getActivePoints();
   if (colors.length < 2) return null;
@@ -1482,7 +1582,50 @@ function exportJSON() {
       });
     }
   }
-  downloadFile('colormap.json', JSON.stringify(data, null, 2), 'application/json');
+  downloadFile('colormap.json', JSON.stringify({ metadata: buildMetadata(), colors: data }, null, 2), 'application/json');
+}
+
+// A Python file that defines the colormap for matplotlib (the conditions are kept as comments)
+function exportPython() {
+  const d = getExportData();
+  if (!d) return;
+  const rows = [];
+  for (let i = 0; i < 256; i++) {
+    const rgb = cielab2nlrgb(d.interp.ls[i], d.interp.as[i], d.interp.bs[i]);
+    rows.push(`    [${clamp01(rgb[0]).toFixed(6)}, ${clamp01(rgb[1]).toFixed(6)}, ${clamp01(rgb[2]).toFixed(6)}],`);
+  }
+  const meta = JSON.stringify(buildMetadata(), null, 2).split('\n').map(l => '# ' + l).join('\n');
+  const py = `# Colormap made with Colormap Studio.
+#
+# How to use (put this file next to your script):
+#     from colormap import cmap
+#     plt.imshow(data, cmap=cmap)        # cmap_r is the reversed colormap
+#
+# Run "python colormap.py" to see the colormap.
+#
+# Conditions under which it was made:
+${meta}
+
+from matplotlib.colors import ListedColormap
+
+_COLORS = [
+${rows.join('\n')}
+]
+
+cmap = ListedColormap(_COLORS, name="colormap_studio")
+cmap_r = cmap.reversed()
+
+if __name__ == "__main__":
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    gradient = np.linspace(0, 1, 256).reshape(1, -1)
+    fig, ax = plt.subplots(figsize=(8, 1.2))
+    ax.imshow(gradient, aspect="auto", cmap=cmap)
+    ax.set_axis_off()
+    plt.show()
+`;
+  downloadFile('colormap.py', py, 'text/x-python');
 }
 
 function exportCSS() {
@@ -1743,10 +1886,12 @@ function initEvents() {
   $('#btnExportJSON').addEventListener('click', exportJSON);
   $('#btnExportPNG').addEventListener('click', exportPNG);
   $('#btnExportCSV').addEventListener('click', exportCSV);
+  $('#btnExportPy').addEventListener('click', exportPython);
 }
 
 // ===== Init =====
 function init() {
+  $('.app-footer-version').textContent = `Colormap Studio v${APP_VERSION}`;
   initDefaults();
   initEvents();
   initTestPage(getSharedColormap, PRESETS);
