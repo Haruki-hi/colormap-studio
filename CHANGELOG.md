@@ -2,6 +2,16 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.5 — 2026-11-12
+
+### Changed
+- **★ now means what it says**: a ★ color is a specified color and is kept close to the chosen color (R); a color whose ★ was removed by right-click is only a starting point and may move more (R′). Until now the ★ had no effect: every square with a color was treated as specified. Results are unchanged as long as no ★ is removed
+- Tutorial: the how-to guide comes first, with a table of contents; a "shortest 3 steps" box; each step is a short list instead of long paragraphs; small figures for the color squares and for the display after optimization; the Test tab is explained; the parameter table uses plain words; the background chapters follow under their own heading
+- Tutorial (English): rewritten in natural English instead of a literal translation
+- Tutorial: emphasized text was pale lavender on white; it is now dark indigo
+- Generator: a one-line "1 Choose → 2 Optimize → 3 Export" guide with a link to the Tutorial; "Candidates of specified colors" is now "Colors of the colormap"; explanations appear when the pointer rests on a score, an advanced parameter or a color square
+- Exports record which squares were ★ (`specified_slots`)
+
 ## v1.4.2 — 2026-11-12
 
 ### Fixed

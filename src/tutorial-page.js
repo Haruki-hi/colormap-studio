@@ -126,7 +126,7 @@ const CONTENT = {
         icon: '🧭',
         title: '2 つの手法：均等性と整合性',
         body: `
-          <p>Generator ページ左上の「Method」で、目的に合わせて 2 つの手法を選べます。どちらが優れているということはなく、<strong>評価の軸が違う</strong>ので、使う場面に応じて使い分けます。選んでいる手法は、「Method」のトグル、パネル上端の色（均等性＝青紫、整合性＝ピンク）、スコア表示の見出し、Optimize ボタンの表記で確認できます。</p>
+          <p>Generator タブ左上の「Method」で、目的に合わせて 2 つの手法を選べます。どちらが優れているということはなく、<strong>評価の軸が違う</strong>ので、使う場面に応じて使い分けます。選んでいる手法は、「Method」のトグル、パネル上端の色（均等性＝青紫、整合性＝ピンク）、スコア表示の見出し、Optimize ボタンの表記で確認できます。</p>
           <table class="param-table">
             <thead><tr><th></th><th>均等性（Uniformity）</th><th>整合性（Consistency）</th></tr></thead>
             <tbody>
@@ -185,11 +185,14 @@ const CONTENT = {
           <table class="param-table">
             <thead><tr><th>パラメータ</th><th>説明</th><th>デフォルト</th></tr></thead>
             <tbody>
-              <tr><td>w<sub>u</sub> / w<sub>f</sub> (u_WEIGHT)</td><td>均等性（U）または整合性（F）の重み</td><td>0.1</td></tr>
-              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>コントラスト確保（Q）の重み</td><td>0.7（均等性）／0.8（整合性）</td></tr>
-              <tr><td>S1_WEIGHT</td><td>滑らかさ（es）の計算時の係数</td><td>1.0</td></tr>
-              <tr><td>R</td><td>プリファレンス色の移動バイアス半径</td><td>7.0</td></tr>
-              <tr><td>R'</td><td>非プリファレンス色の移動バイアス半径</td><td>10.0</td></tr>
+              <tr><td>u_WEIGHT / f_WEIGHT</td><td>均等性 U（整合性では F）をどれだけ重視するか（w<sub>u</sub>、w<sub>f</sub>）</td><td>0.1</td></tr>
+              <tr><td>q_WEIGHT</td><td>コントラスト Q をどれだけ重視するか（w<sub>q</sub>）。残り（1 から 2 つの重みを引いた分）が滑らかさ S の重みになります</td><td>0.7（均等性）／0.8（整合性）</td></tr>
+              <tr><td>S1_WEIGHT</td><td>滑らかさ S の計算で使う係数</td><td>1.0</td></tr>
+              <tr><td>R</td><td>★ の付いた色（指定色）が、選んだ色からどのくらい離れてよいかの目安（色差 ΔE）。小さいほど元の色を保ちます</td><td>7.0</td></tr>
+              <tr><td>R′</td><td>★ のない色についての同じ目安。大きいほど自由に動きます</td><td>10.0</td></tr>
+              <tr><td>T_init / T_end</td><td>探索の「温度」の開始値と終了値。温度が高いあいだは、悪くなる変更も受け入れて広く探します</td><td>1.0 / 0.0001</td></tr>
+              <tr><td>Alpha</td><td>温度を下げる割合（段階ごとにこの値を掛けます）</td><td>0.925</td></tr>
+              <tr><td>Iterations</td><td>1 つの温度で試す回数。多いほど時間はかかりますが、ていねいに探します</td><td>5500</td></tr>
               <tr><td>Seed</td><td>乱数の種。同じ設定で同じ種を入れると、同じ結果を再現できます</td><td>空欄（毎回変わる）</td></tr>
             </tbody>
           </table>
@@ -197,7 +200,7 @@ const CONTENT = {
           <div class="sa-steps">
             <div class="sa-step">
               <div class="sa-step-num">1</div>
-              <div class="sa-step-text">初期カラーマップ（プリセットまたはカスタム）からスタート</div>
+              <div class="sa-step-text">画面に並んでいる色からスタート</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">2</div>
@@ -219,7 +222,16 @@ const CONTENT = {
         icon: '📖',
         title: '使い方ガイド',
         body: `
-          <p>以下の手順どおりに進めれば、専門知識がなくても色覚の多様性に配慮したカラーマップを作成できます。難しく感じる場合は、まず「Preset colormap」から既存の配色を選んで「Optimize」を押すだけでも十分実用的な結果になります。</p>
+          <p>Colormap Studio は、色覚の多様性に配慮したカラーマップを自動で作るサイトです。操作は Generator タブで行います。</p>
+          <div class="quick-start">
+            <div class="quick-start-title">最短の 3 ステップ</div>
+            <ol>
+              <li><strong>Preset colormap</strong> で、もとにする配色を選ぶ</li>
+              <li><strong>Optimize</strong> を押して、数秒〜数十秒待つ</li>
+              <li><strong>Export</strong> で保存する</li>
+            </ol>
+            <p>これだけで使えるカラーマップができます。色を自分で決めたい、手持ちのカラーマップを直したい、といった場合は、下の手順を必要なところだけ読んでください。</p>
+          </div>
           <div class="tutorial-figure">
             <div class="ui-map" role="img" aria-label="Generator 画面の見取り図">
               <div class="ui-map-nav"><span class="ui-map-tab on">Generator</span><span class="ui-map-tab">Test<b class="ui-badge">5</b></span><span class="ui-map-tab">Tutorial</span></div>
@@ -231,69 +243,111 @@ const CONTENT = {
                   <div class="ui-map-box ui-map-optimize"><span class="ui-map-btn">Optimize</span><b class="ui-badge">4</b></div>
                 </div>
                 <div class="ui-map-right">
-                  <div class="ui-map-box"><span class="ui-map-cap">Candidates of specified colors</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Colors of the colormap</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
                   <div class="ui-map-box"><span class="ui-map-cap">Colormap preview / CVD simulation</span><span class="ui-map-bar"></span><span class="ui-map-bar ui-map-bar2"></span></div>
                   <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i><i>⬇ Python</i></span><b class="ui-badge">6</b></div>
                 </div>
               </div>
             </div>
-            <p class="tutorial-caption">↑ Generator 画面の見取り図。丸い番号は、下の手順 1〜6 で操作する場所を示しています。</p>
+            <p class="tutorial-caption">↑ Generator 画面の見取り図。丸い番号は、下の手順 1〜6 で操作する場所です。</p>
           </div>
           <div class="guide-steps">
             <div class="guide-step">
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
-                <h4>ベースとなる配色を選ぶ</h4>
-                <p>最初に、左上の「Method」で手法を選びます。隣り合う色の差をそろえたいときは「Uniformity（均等性）」、元のカラーマップが持つ色差のパターンを保ちたいときは「Consistency（整合性）」です（違いは上の「2 つの手法」を参照）。整合性では既存のカラーマップから始めるため、Custom はありません。</p>
-                <p>Generator ページ左側の「Preset colormap」から、土台にしたい配色（Viridis など）を選びます。まっさらな状態から自分で色を決めたい場合は「Custom」を選んでください。「Custom」を選ぶと、始まりの色（赤）と終わりの色（青）だけが仮に置かれた状態になります。手持ちのカラーマップを高性能化したいときは「Upload colormap (image / CSV)…」を選び、横長のカラーマップ画像（PNG・JPEG・BMP・PPM）か、RGB または L*a*b* の CSV を読み込んでください。そこから 15 色が取り出されて並び、そのまま「Optimize」できます。読み込んだファイルはお使いのブラウザの中だけで処理され、サーバーには送信されません。</p>
+                <h4>手法と、もとにする配色を選ぶ</h4>
+                <ul>
+                  <li><strong>Method</strong>：ふつうは <strong>Uniformity（均等性）</strong>のままで構いません。どこも同じ刻みで色が変わるカラーマップになります。</li>
+                  <li>海と陸の境目のように、もとのカラーマップの「色の変わり方」に意味があり、それを保ちたいときは <strong>Consistency（整合性）</strong>を選びます。</li>
+                  <li><strong>Preset colormap</strong>：もとにする配色を一覧から選びます。</li>
+                  <li><strong>自分のカラーマップを使う</strong>：一覧の「Upload colormap (image / CSV)…」を選び、横長のカラーマップ画像（PNG・JPEG・BMP・PPM）か、RGB または L*a*b* の CSV を読み込みます。ファイルはブラウザの中だけで処理され、サーバーには送信されません。</li>
+                  <li><strong>一から作る</strong>：一覧の「Custom」を選ぶと、両端の色だけが置かれた状態から始められます（Uniformity のみ）。</li>
+                </ul>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">2</div>
               <div class="guide-step-content">
-                <h4>使いたい色を選んで置く</h4>
-                <p>画面中央に並ぶ 15 個の四角（カラーストリップ）は、グラデーションが通過していく色の「目印」です。四角をクリックすると色選択パネルが開くので、色域図をクリックするか、L*a*b* または RGB の数値を入力して色を決め、「Apply」を押すと確定してパネルが閉じます。</p>
-                <p><strong>すべての四角に色を置く必要はありません。</strong>色を置いた四角どうしの間は自動的につながる（グラデーションで補間される）ので、こだわりたい色だけを選べば十分です。置いた色を取り消したいときは、四角の右上に出る「✕」を押してください。四角を右クリックすると付く★マークは、「自分が意図して選んだ色」であることを示す目印です。整合性では、選んだカラーマップから 15 色が自動で置かれ（位置は等間隔ではありません）、色を直すことはできますが、消すことはできません。</p>
-                <p><strong>⚠️ ただし両端（0 番と 14 番）だけは必ず色を決めてください。</strong> ここがグラデーションの始まりと終わりになるため、最適化を開始するための必須条件です。</p>
+                <h4>色を決める（そのままでよければ飛ばして構いません）</h4>
+                <ul>
+                  <li>画面中央の 15 個の四角が、カラーマップが通っていく色です。</li>
+                  <li>四角をクリックすると色を選ぶパネルが開きます。色を選んで <strong>Apply</strong> を押すと確定します。</li>
+                  <li><strong>★ は「指定色」のしるし</strong>です。色を置くと自動で付き、最適化のあともその色の近くに保たれます。</li>
+                  <li>四角を<strong>右クリック</strong>すると ★ を外せます。★ のない色は出発点として使われるだけで、最適化でより大きく動いて構わない色になります。「この数色だけは守りたい」というときは、それ以外の ★ を外してください。</li>
+                  <li>四角の右上の <strong>✕</strong> で色を消せます。空の四角は、両隣の色から自動でつながります（Consistency では消せません）。</li>
+                  <li>両端（0 番と 14 番）には必ず色を置いてください。</li>
+                </ul>
+                <div class="ui-map ui-map-inline" role="img" aria-label="色の四角の例">
+                  <span class="ui-map-strip ui-map-strip-demo"><i class="star"></i><i class="star"></i><i class="none"></i><i class="none"></i><i class="star"></i><i class="none"></i><i></i><i class="none"></i><i class="star"></i><i class="star"></i></span>
+                  <span class="ui-map-note">★＝指定色（近くに保つ）／★なし＝大きく動いてよい／点線＝空（自動でつながる）</span>
+                </div>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">3</div>
               <div class="guide-step-content">
-                <h4>配慮したい見え方（CVD タイプ）を選ぶ</h4>
-                <p>人によって色の感じ方は異なります。「CVD types」のチェックボックスで、配慮したいタイプ（P型・D型・T型。詳しくは上の「色覚の多様性（CVD）」の章を参照）にチェックを入れてください。迷った場合は、比較的人数の多い P型・D型の両方にチェックを入れることをおすすめします。すぐ下のプレビューバーで、それぞれの見え方をその場で確認できます。整合性では、1 つ以上の選択が必須です。</p>
+                <h4>配慮する色覚タイプを選ぶ</h4>
+                <ul>
+                  <li><strong>CVD types</strong> で、配慮したいタイプにチェックを入れます。迷ったら P-type と D-type の両方で構いません。</li>
+                  <li>チェックしたタイプでの見え方が、プレビューの下にすぐ表示されます。</li>
+                  <li>Consistency では 1 つ以上のチェックが必要です。</li>
+                </ul>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">4</div>
               <div class="guide-step-content">
-                <h4>「Optimize」で自動調整する</h4>
-                <p>「Optimize」ボタンを押すと、自分で選んだ色はできるだけ保ちながら、色を置いていない部分をコンピュータが自動的に調整します。目的は、チェックしたどの CVD タイプで見ても隣どうしの色がきちんと区別できるようにすることです。</p>
-                <p>進捗バーには完了率と「E」という数値（配色の良し悪しを表すスコアで、小さいほど良い）が表示されます。あわせて表示される U′・Q′・S′ は、均等性 U を 100 倍、コントラスト Q と滑らかさ S を 1000 倍した値です（いずれも小さいほど良い）。整合性では U′ の代わりに F′（整合性 F の 100 倍）が表示されます。完了までに数秒〜数十秒かかることがあります。ボタンが反応しない場合は、両端（0 番と 14 番）に色が入っているか確認してください。</p>
-                <p>完了すると、各プレビューバーの下に最適化前のカラーマップ（Before optimization）が並び、スコアも「最適化前 → 最適化後」の形で表示されるので、どれだけ変わったかを見比べられます。</p>
-                <p>結果は実行のたびに少しずつ変わります。スコアの下に、その実行で使われた乱数の種（seed）が表示されます。同じ結果をもう一度作りたいときは、「Advanced parameters」の「Seed」にその数を入れ、同じ設定で実行してください。</p>
+                <h4>Optimize を押す</h4>
+                <ul>
+                  <li><strong>Optimize</strong> を押すと自動調整が始まり、数秒〜数十秒で終わります。</li>
+                  <li>終わると、各プレビューの下に<strong>最適化前のカラーマップ</strong>（Before optimization）が並びます。</li>
+                  <li>スコアは「最適化前 → 最適化後」の形で表示されます。<strong>どの数値も小さいほど良い</strong>ことを表します。それぞれの数値にマウスを置くと説明が出ます。</li>
+                  <li>結果は実行のたびに少し変わります。気に入らなければ、もう一度押すか、色を直してから押してください。</li>
+                  <li>同じ結果をもう一度作りたいときは、スコアの下に表示される seed の数を「Advanced parameters」の「Seed」に入れて実行します。</li>
+                </ul>
+                <div class="ui-map ui-map-inline" role="img" aria-label="最適化後の表示の例">
+                  <span class="ui-map-cap">Colormap preview</span><span class="ui-map-bar"></span>
+                  <span class="ui-map-note">Before optimization</span><span class="ui-map-bar ui-map-bar-before"></span>
+                  <span class="ui-map-score">E · Uniformity: <span class="dim">0.07804 →</span> 0.04433</span>
+                  <span class="ui-map-note">上が最適化後、下が最適化前。スコアは「前 → 後」。</span>
+                </div>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">5</div>
               <div class="guide-step-content">
-                <h4>Test ページで実際の見え方を確かめる</h4>
-                <p>上部メニューの「Test」タブに移動すると、作成したカラーマップをグラフや画像などさまざまなサンプルデータに当てはめて確認できます。CVD シミュレーションも同時に表示されるので、意図したとおりに区別しやすくなっているか目で確かめましょう。思ったとおりの結果でなければ、Generator ページに戻って色を調整し、再度「Optimize」してみてください。</p>
+                <h4>Test タブで実際の見え方を確かめる</h4>
+                <ul>
+                  <li>上の <strong>Test</strong> タブを開くと、サンプルのデータや画像にカラーマップを当てはめた一覧が出ます。</li>
+                  <li>見たいものをクリックすると拡大され、通常の見え方と、各色覚タイプでの見え方が横に並びます。</li>
+                  <li>左の「Colormap」が「Current (from Generator)」なら、いま作っているカラーマップです。Jet や Viridis などに切り替えて見比べることもできます。</li>
+                  <li>画像の上にマウスを置くと、その場所の値と色が左下に表示されます。</li>
+                  <li><strong>見るポイント</strong>：データにない縞や境目が見えていないか。色覚タイプの画像で、区別できていた部分がつぶれていないか。</li>
+                </ul>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">6</div>
               <div class="guide-step-content">
-                <h4>気に入った配色を保存する</h4>
-                <p>「Export」から、用途に合わせて保存できます。</p>
-                <p><strong>JSON</strong>：他のプログラムやツールに読み込ませるためのデータ形式です。<strong>CSV</strong>：Excel などの表計算ソフトでそのまま開ける数値の一覧です。<strong>PNG</strong>：カラーマップを帯状の画像として保存します。資料やスライドに貼り付けたいときに便利です。<strong>Python (matplotlib)</strong>：Python のグラフ描画ライブラリ matplotlib でそのまま使えるファイル（colormap.py）です。自分のプログラムと同じフォルダに置き、<code>from colormap import cmap</code> と書いて <code>plt.imshow(data, cmap=cmap)</code> のように使います。</p>
-                <p>JSON と Python のファイルには、作成時の条件（手法、元のカラーマップ、色覚タイプ、重み、乱数の種、スコア、アプリのバージョン）も記録されます。論文などで作成条件を示すときに使えます。</p>
-                <p>このサイトで作成したカラーマップは、出典の表記なしで自由にお使いいただけます。</p>
+                <h4>保存する</h4>
+                <ul>
+                  <li><strong>PNG</strong>：帯状の画像。資料やスライドに貼るとき。</li>
+                  <li><strong>CSV</strong>：256 色の数値の一覧。Excel などで開けます。</li>
+                  <li><strong>JSON</strong>：他のプログラムで読み込むためのデータ。</li>
+                  <li><strong>Python (matplotlib)</strong>：matplotlib でそのまま使えるファイル（colormap.py）。自分のプログラムと同じフォルダに置き、<code>from colormap import cmap</code> と書いて <code>plt.imshow(data, cmap=cmap)</code> のように使います。</li>
+                  <li>JSON と Python のファイルには、作成時の条件（手法、もとの配色、色覚タイプ、設定値、seed、スコア）も記録されます。論文などで作成条件を示すときに使えます。</li>
+                  <li>このサイトで作ったカラーマップは、出典の表記なしで自由に使えます。</li>
+                </ul>
               </div>
             </div>
           </div>
           <div class="insight-box">
-            <strong>うまくいかないときは：</strong> 「Optimize」が押せない場合は両端（0 番・14 番）の色が設定されているか確認してください。配色を最初からやり直したい場合は、プリセットを選び直すか「Custom」を選べば全てリセットされます。
+            <strong>うまくいかないとき</strong>
+            <ul>
+              <li>Optimize が始まらない：両端（0 番と 14 番）に色があるか確認してください。Consistency では、色覚タイプを 1 つ以上選び、15 個すべてに色が必要です。</li>
+              <li>最初からやり直したい：Preset colormap を選び直すと、すべて元に戻ります。</li>
+              <li>色があまり変わらない：★ の付いた色は元の色の近くに保たれます。動かしてよい色は右クリックで ★ を外してください。</li>
+            </ul>
           </div>
         `,
       },
@@ -306,7 +360,7 @@ const CONTENT = {
         icon: '⚠️',
         title: 'Why Colormaps Shape Science',
         body: `
-          <p>The choice of colormap profoundly affects how data is interpreted. <strong>A poor colormap creates patterns that don't exist and hides features that do.</strong></p>
+          <p>The choice of colormap profoundly affects how data is interpreted. <strong>A colormap that misrepresents differences in the data shows you patterns that aren't there and hides the ones that are.</strong></p>
           <h3>Jet vs Viridis — The Same Data, Two Different Stories</h3>
           <p>The demo below shows identical numerical data rendered with Jet (problematic) and Viridis (recommended).</p>
           <div class="tutorial-figure">
@@ -366,7 +420,7 @@ const CONTENT = {
         icon: '👁️',
         title: 'Color Vision Deficiency (CVD)',
         body: `
-          <p>About 8% of males have some form of Color Vision Deficiency (CVD). When designing colormaps, it is crucial to ensure that information is accessible to individuals with CVD.</p>
+          <p>About 8% of men have some form of color vision deficiency (CVD). A colormap should carry its information to them as well.</p>
           <h3>Three Types of CVD</h3>
           <div class="cvd-types-grid">
             <div class="cvd-type-card cvd-p-card">
@@ -383,7 +437,7 @@ const CONTENT = {
             </div>
           </div>
           <div class="insight-box">
-            The simulation and optimization in Colormap Studio are based on <strong>dichromacy</strong> of the P, D and T types (one of the three kinds of cones does not function).
+            Colormap Studio simulates and optimizes for <strong>dichromacy</strong> of the P, D and T types, where one of the three kinds of cone does not work.
           </div>
           <h3>CVD Simulation Experience</h3>
           <p>See how each CVD type perceives the same image below.</p>
@@ -412,51 +466,51 @@ const CONTENT = {
         icon: '🧭',
         title: 'Two Methods: Uniformity and Consistency',
         body: `
-          <p>Use "Method" at the top left of the Generator page to choose between two methods. Neither is better than the other: they <strong>measure different things</strong>, so pick the one that fits your situation. You can always see which one is active from the "Method" toggle, the color of the panel's top edge (Uniformity = indigo, Consistency = pink), the heading of the score display, and the label of the Optimize button.</p>
+          <p>"Method" at the top left of the Generator tab switches between two methods. Neither is the better one — they <strong>aim at different things</strong>, so choose by what you need. The active method is always visible: in the "Method" switch, in the color of the panel's top edge (indigo for Uniformity, pink for Consistency), in the score heading and on the Optimize button.</p>
           <table class="param-table">
             <thead><tr><th></th><th>Uniformity</th><th>Consistency</th></tr></thead>
             <tbody>
-              <tr><td>Goal</td><td>Make the color difference between neighboring colors equal</td><td>Keep the original colormap's own pattern of color differences while making it look consistent under CVD</td></tr>
-              <tr><td>Use it when</td><td>The color differences carry no special meaning and you want every step to look even</td><td>The pattern of color differences is meaningful — for example, a step deliberately made larger to separate sea from land — and you want a CVD-aware version of it</td></tr>
-              <tr><td>Starting point</td><td>Preset / Custom / Upload</td><td>An existing colormap (research map, preset or upload). There is no Custom</td></tr>
-              <tr><td>Representative colors</td><td>Evenly spaced</td><td>At equal steps of color difference (not evenly spaced)</td></tr>
-              <tr><td>Terms</td><td>U (uniformity), Q (contrast), S (smoothness)</td><td>F (consistency), Q, S</td></tr>
-              <tr><td>Initial weights</td><td>w<sub>u</sub> = 0.1, w<sub>q</sub> = 0.7</td><td>w<sub>f</sub> = 0.1, w<sub>q</sub> = 0.8</td></tr>
-              <tr><td>CVD types</td><td>Can run with none selected</td><td>At least one must be selected</td></tr>
+              <tr><td>Goal</td><td>Even steps: every neighboring pair of colors differs by the same amount</td><td>Keep the original colormap's pattern of larger and smaller steps, and make that pattern hold up under CVD too</td></tr>
+              <tr><td>Use it when</td><td>The steps carry no special meaning and you simply want an even scale</td><td>The steps are deliberate — a big jump to separate sea from land, say — and you want a CVD-friendly version of the same colormap</td></tr>
+              <tr><td>Starts from</td><td>A preset, your upload, or Custom</td><td>An existing colormap (research map, preset or upload); no Custom</td></tr>
+              <tr><td>Where the 15 colors sit</td><td>Evenly spaced along the colormap</td><td>Spaced so that neighbors differ by equal amounts (so not evenly spaced)</td></tr>
+              <tr><td>What is scored</td><td>U (uniformity), Q (contrast), S (smoothness)</td><td>F (consistency), Q, S</td></tr>
+              <tr><td>Default weights</td><td>w<sub>u</sub> = 0.1, w<sub>q</sub> = 0.7</td><td>w<sub>f</sub> = 0.1, w<sub>q</sub> = 0.8</td></tr>
+              <tr><td>CVD types</td><td>Optional</td><td>At least one required</td></tr>
             </tbody>
           </table>
-          <h3>Objective function (the yardstick of "good")</h3>
-          <p>Optimization adjusts the colors so that E becomes smaller. E is a weighted sum of three terms: only the first term differs between the methods, while Q and S are shared.</p>
+          <h3>The objective function: how "good" is measured</h3>
+          <p>The optimization moves the colors to make a single number, E, as small as possible. E is a weighted sum of three terms. The two methods differ only in the first term; Q and S are the same in both.</p>
           <div class="formula-card">
             <div class="math-display">Uniformity: E = w<sub>u</sub>U + w<sub>q</sub>Q + w<sub>s</sub>S</div>
             <div class="math-display">Consistency: E = w<sub>f</sub>F + w<sub>q</sub>Q + w<sub>s</sub>S</div>
             <div class="math-note">(w<sub>s</sub> = 1 − w<sub>u</sub> − w<sub>q</sub>; in Consistency, 1 − w<sub>f</sub> − w<sub>q</sub>)</div>
           </div>
           <ul>
-            <li><strong>U (Uniformity score)</strong>: checks whether the perceived color differences between neighboring colors are even.
+            <li><strong>U (uniformity)</strong>: are the steps between neighboring colors all the same size to the eye?
               <ul>
-                <li>Minimizes the coefficient of variation (standard deviation ÷ mean) of ΔE between adjacent slots.</li>
+                <li>Measured as the coefficient of variation (standard deviation ÷ mean) of the color difference ΔE between neighboring colors.</li>
               </ul>
             </li>
-            <li><strong>F (Consistency score)</strong>: checks whether the original colormap's pattern of color differences is preserved under CVD.
+            <li><strong>F (consistency)</strong>: does the original colormap's pattern of steps survive under CVD?
               <div class="formula-card">
                 <div class="math-note">F = (1 − 0.05) · (Σ<sub>c</sub> σ<sub>c</sub>) / |C| + 0.05 · F̂</div>
               </div>
               <ul>
-                <li><strong>σ<sub>c</sub></strong>: for each CVD type c, the ratio "color difference between neighbors as seen with CVD ÷ as seen normally" is computed, and σ<sub>c</sub> is its spread (standard deviation). It is 0 when the ratio is the same everywhere, meaning the pattern of color differences seen normally is preserved, proportionally, under CVD.</li>
-                <li><strong>F̂</strong>: the average deviation from the original colormap's neighboring color differences (ΔE<sub>00</sub>). The smaller it is, the closer to the original pattern.</li>
-                <li><strong>|C|</strong>: the number of selected CVD types. F compares how each type sees the colormap, so at least one must be selected.</li>
+                <li><strong>σ<sub>c</sub></strong>: for each CVD type c, take every pair of neighboring colors and divide the difference seen with CVD by the difference seen normally. σ<sub>c</sub> is how much that ratio varies along the colormap (its standard deviation). If it is 0, the ratio is the same everywhere: someone with CVD sees the same pattern of steps, just scaled.</li>
+                <li><strong>F̂</strong>: how far, on average, the steps between neighbors have moved from those of the original colormap (in ΔE<sub>00</sub>). Smaller means closer to the original pattern.</li>
+                <li><strong>|C|</strong>: the number of CVD types selected. F is defined per CVD type, which is why at least one is required.</li>
               </ul>
             </li>
-            <li><strong>Q (CVD contrast term)</strong>: checks that every pair of colors stays distinguishable under CVD.
+            <li><strong>Q (contrast)</strong>: can every pair of colors still be told apart under CVD?
               <ul>
-                <li>Weighted so that the color difference does not fall below a target (half of the normal color difference, up to 30).</li>
+                <li>Each pair is penalized when its color difference under CVD drops below a target: half of the difference seen normally, capped at 30.</li>
               </ul>
             </li>
-            <li><strong>S (Smoothness)</strong>: checks how smooth the path the colormap draws in Lab space is (small changes of direction).</li>
+            <li><strong>S (smoothness)</strong>: does the colormap trace a smooth path through L*a*b* space, without sharp turns?</li>
           </ul>
           <div class="insight-box">
-            In Consistency, 15 colors are taken from the chosen 256-color colormap at equal steps of color difference. After generation, the score is measured on the 256-color colormap at every 8th point plus the last one, and F is compared with the original colormap's color differences at the same points.
+            In Consistency, 15 colors are picked from the 256-color colormap you chose, spaced so that neighbors differ by equal amounts. The finished colormap is scored on its 256 colors — every 8th one plus the last — and F compares the steps there with the original colormap's steps at the same places.
           </div>
         `,
       },
@@ -465,17 +519,20 @@ const CONTENT = {
         icon: '⚡',
         title: 'How Optimization Works',
         body: `
-          <p>Colormap Studio uses <strong>Simulated Annealing (SA)</strong> to automatically generate CVD-aware colormaps.</p>
-          <p>The objective function E that measures how good a colormap is (a weighted sum of U or F, Q and S) is explained in "Two Methods" above. This section explains how the colors that make E smaller are searched for.</p>
+          <p>Colormap Studio searches for good colors with <strong>simulated annealing (SA)</strong>, a trial-and-error method that starts out adventurous and gradually settles down.</p>
+          <p>What counts as "good" — the objective function E — is described in "Two Methods" above. This section is about how the search for a small E works.</p>
           <h3>Key Parameters</h3>
           <table class="param-table">
             <thead><tr><th>Parameter</th><th>Description</th><th>Default</th></tr></thead>
             <tbody>
-              <tr><td>w<sub>u</sub> / w<sub>f</sub> (u_WEIGHT)</td><td>Uniformity (U) or Consistency (F) weight</td><td>0.1</td></tr>
-              <tr><td>w<sub>q</sub> (q_WEIGHT)</td><td>CVD contrast (Q) weight</td><td>0.7 (Uniformity) / 0.8 (Consistency)</td></tr>
-              <tr><td>S1_WEIGHT</td><td>Coefficient for smoothness (es)</td><td>1.0</td></tr>
-              <tr><td>R</td><td>Movement bias radius for preference colors</td><td>7.0</td></tr>
-              <tr><td>R'</td><td>Movement bias radius for non-preference colors</td><td>10.0</td></tr>
+              <tr><td>u_WEIGHT / f_WEIGHT</td><td>How much uniformity U (or consistency F) counts (w<sub>u</sub>, w<sub>f</sub>)</td><td>0.1</td></tr>
+              <tr><td>q_WEIGHT</td><td>How much contrast Q counts (w<sub>q</sub>). Whatever is left (1 minus the two weights) goes to smoothness S</td><td>0.7 (Uniformity) / 0.8 (Consistency)</td></tr>
+              <tr><td>S1_WEIGHT</td><td>A coefficient used inside the smoothness term S</td><td>1.0</td></tr>
+              <tr><td>R</td><td>Roughly how far a ★ color may drift from the color you chose (as a color difference ΔE). Smaller keeps it closer</td><td>7.0</td></tr>
+              <tr><td>R′</td><td>The same for colors without ★. Larger lets them move more</td><td>10.0</td></tr>
+              <tr><td>T_init / T_end</td><td>Start and end "temperature" of the search. While it is hot, the search also accepts changes for the worse and explores widely</td><td>1.0 / 0.0001</td></tr>
+              <tr><td>Alpha</td><td>Cooling rate: the temperature is multiplied by this at each stage</td><td>0.925</td></tr>
+              <tr><td>Iterations</td><td>Trial moves per temperature. More is slower but more thorough</td><td>5500</td></tr>
               <tr><td>Seed</td><td>Random seed. The same seed with the same settings reproduces the same result</td><td>empty (different each time)</td></tr>
             </tbody>
           </table>
@@ -483,19 +540,19 @@ const CONTENT = {
           <div class="sa-steps">
             <div class="sa-step">
               <div class="sa-step-num">1</div>
-              <div class="sa-step-text">Start from an initial colormap (preset or custom)</div>
+              <div class="sa-step-text">Start from the colors on screen</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">2</div>
-              <div class="sa-step-text">Randomly select one color and apply a small perturbation in L*a*b* space</div>
+              <div class="sa-step-text">Pick one color at random and nudge it slightly in L*a*b* space</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">3</div>
-              <div class="sa-step-text">Accept if E improves; also accept probabilistically if worse (temperature-dependent)</div>
+              <div class="sa-step-text">Keep the change if E gets smaller. If it gets larger, keep it only sometimes — more often while the temperature is high</div>
             </div>
             <div class="sa-step">
               <div class="sa-step-num">4</div>
-              <div class="sa-step-text">Gradually decrease temperature and repeat steps 2–3</div>
+              <div class="sa-step-text">Lower the temperature a little and repeat steps 2–3</div>
             </div>
           </div>
         `,
@@ -505,7 +562,16 @@ const CONTENT = {
         icon: '📖',
         title: 'How to Use',
         body: `
-          <p>Follow the steps below and you can build a CVD-aware colormap without any prior expertise. If it feels like a lot, the short version is: pick a preset, click "Optimize," and you already have a solid result.</p>
+          <p>Colormap Studio builds colormaps that still work for people with color vision deficiency (CVD). Everything happens on the Generator tab.</p>
+          <div class="quick-start">
+            <div class="quick-start-title">The short version</div>
+            <ol>
+              <li>Pick a starting colormap under <strong>Preset colormap</strong></li>
+              <li>Press <strong>Optimize</strong> and wait a few seconds</li>
+              <li>Save it with <strong>Export</strong></li>
+            </ol>
+            <p>That's all you need for a usable colormap. Read on only for the parts you care about — choosing your own colors, say, or improving a colormap you already have.</p>
+          </div>
           <div class="tutorial-figure">
             <div class="ui-map" role="img" aria-label="Map of the Generator screen">
               <div class="ui-map-nav"><span class="ui-map-tab on">Generator</span><span class="ui-map-tab">Test<b class="ui-badge">5</b></span><span class="ui-map-tab">Tutorial</span></div>
@@ -517,69 +583,111 @@ const CONTENT = {
                   <div class="ui-map-box ui-map-optimize"><span class="ui-map-btn">Optimize</span><b class="ui-badge">4</b></div>
                 </div>
                 <div class="ui-map-right">
-                  <div class="ui-map-box"><span class="ui-map-cap">Candidates of specified colors</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
+                  <div class="ui-map-box"><span class="ui-map-cap">Colors of the colormap</span><span class="ui-map-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><b class="ui-badge">2</b></div>
                   <div class="ui-map-box"><span class="ui-map-cap">Colormap preview / CVD simulation</span><span class="ui-map-bar"></span><span class="ui-map-bar ui-map-bar2"></span></div>
                   <div class="ui-map-box"><span class="ui-map-cap">Export</span><span class="ui-map-exports"><i>⬇ JSON</i><i>⬇ CSV</i><i>⬇ PNG</i><i>⬇ Python</i></span><b class="ui-badge">6</b></div>
                 </div>
               </div>
             </div>
-            <p class="tutorial-caption">↑ A map of the Generator screen. Each numbered circle marks where you act in steps 1–6 below.</p>
+            <p class="tutorial-caption">↑ The Generator screen. The numbered circles show where each of steps 1–6 happens.</p>
           </div>
           <div class="guide-steps">
             <div class="guide-step">
               <div class="guide-step-icon">1</div>
               <div class="guide-step-content">
-                <h4>Choose a starting colormap</h4>
-                <p>First, choose a method with "Method" at the top left. Pick "Uniformity" to make the color difference between neighboring colors equal, or "Consistency" to keep the original colormap's own pattern of color differences (see "Two Methods" above for the difference). Consistency starts from an existing colormap, so it has no Custom.</p>
-                <p>On the Generator page, pick a base colormap from the "Preset colormap" dropdown on the left, such as Viridis. To start from a blank slate instead, choose "Custom" — this places placeholder colors only at the start (red) and end (blue), leaving everything else for you to fill in. If you already have a colormap you want to improve, choose "Upload colormap (image / CSV)…" and load a horizontal colormap image (PNG, JPEG, BMP or PPM) or a CSV of RGB or L*a*b* values; 15 colors are extracted from it and placed in the strip, ready for "Optimize." The file is read inside your browser only; it is not sent to any server.</p>
+                <h4>Choose a method and a starting colormap</h4>
+                <ul>
+                  <li><strong>Method</strong>: <strong>Uniformity</strong> is the right choice most of the time. It gives a colormap whose colors change at an even pace from end to end.</li>
+                  <li>Choose <strong>Consistency</strong> when the way your original colormap changes is meaningful — a deliberate jump between sea and land, for instance — and you want to keep it.</li>
+                  <li><strong>Preset colormap</strong>: pick the colormap to start from.</li>
+                  <li><strong>Use your own</strong>: choose "Upload colormap (image / CSV)…" from the list and load a horizontal colormap image (PNG, JPEG, BMP or PPM) or a CSV of RGB or L*a*b* values. The file never leaves your browser.</li>
+                  <li><strong>Start from scratch</strong>: choose "Custom" to begin with only the two end colors in place (Uniformity only).</li>
+                </ul>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">2</div>
               <div class="guide-step-content">
-                <h4>Pick the colors you want to use</h4>
-                <p>The 15 squares in the middle of the screen (the color strip) mark the colors your gradient will pass through. Click a square to open the color picker: click anywhere on the gamut wheel, or type in L*a*b* or RGB values, then press "Apply" to confirm — the panel closes automatically.</p>
-                <p><strong>You don't have to fill in every square.</strong> The colors between the squares you do set are filled in automatically by blending, so you only need to specify the colors you actually care about. Click the "✕" that appears in a square's corner to remove a color. Right-clicking a square adds a small ★ mark, which simply flags "this color was chosen deliberately" — it's a visual note for you, not a required step. In Consistency, 15 colors are placed automatically from the colormap you chose (not evenly spaced); you can adjust a color, but you can't remove one.</p>
-                <p><strong>⚠️ The two end squares (slot 0 and slot 14) are the only ones that must be set.</strong> They define where the gradient starts and ends, and optimization won't start without them.</p>
+                <h4>Set the colors (skip this if you're happy with them)</h4>
+                <ul>
+                  <li>The 15 squares in the middle are the colors your colormap passes through.</li>
+                  <li>Click a square to open the color picker, choose a color, and press <strong>Apply</strong>.</li>
+                  <li><strong>★ marks a color you want to keep.</strong> It appears automatically when you set a color, and the optimization holds that color close to what you chose.</li>
+                  <li><strong>Right-click</strong> a square to remove its ★. A color without ★ is only a starting point and may move further. If there are just a few colors you care about, remove the ★ from the rest.</li>
+                  <li>The <strong>✕</strong> in a square's corner removes its color. Empty squares are filled in from their neighbors (not available in Consistency).</li>
+                  <li>The two ends (squares 0 and 14) must always have a color.</li>
+                </ul>
+                <div class="ui-map ui-map-inline" role="img" aria-label="Example of the color squares">
+                  <span class="ui-map-strip ui-map-strip-demo"><i class="star"></i><i class="star"></i><i class="none"></i><i class="none"></i><i class="star"></i><i class="none"></i><i></i><i class="none"></i><i class="star"></i><i class="star"></i></span>
+                  <span class="ui-map-note">★ = kept close · no ★ = free to move · dashed = empty (filled in automatically)</span>
+                </div>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">3</div>
               <div class="guide-step-content">
-                <h4>Choose which CVD types to account for</h4>
-                <p>People perceive color differently depending on their vision. Under "CVD types," check the type(s) you want the colormap optimized for — P-type, D-type, and/or T-type (see the "Color Vision Deficiency (CVD)" section above for what these mean). If you're not sure, checking both P-type and D-type is a good default, since they're the most common. The preview bars right below update immediately to show how each type would perceive your current colors. Consistency requires at least one type to be selected.</p>
+                <h4>Choose which kinds of color vision to design for</h4>
+                <ul>
+                  <li>Tick the types you want under <strong>CVD types</strong>. If unsure, tick both P-type and D-type.</li>
+                  <li>A preview of how each ticked type sees the colormap appears right away.</li>
+                  <li>Consistency needs at least one type ticked.</li>
+                </ul>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">4</div>
               <div class="guide-step-content">
-                <h4>Click "Optimize" to auto-adjust</h4>
-                <p>Clicking "Optimize" keeps the colors you deliberately chose roughly in place while automatically adjusting the colors you left unset. The goal is to make sure adjacent colors stay distinguishable for every CVD type you checked in the previous step.</p>
-                <p>The progress bar shows a completion percentage and a score called "E" (lower is better). The U′, Q′ and S′ values shown alongside are the uniformity U multiplied by 100 and the contrast Q and smoothness S multiplied by 1000 (lower is better for all of them). In Consistency, F′ (100 times the consistency term F) is shown instead of U′. This usually takes anywhere from a few seconds to under a minute. If the button doesn't respond, double-check that both end slots (0 and 14) have colors set.</p>
-                <p>When it finishes, the colormap before optimization appears under each preview bar ("Before optimization"), and the scores are shown as "before → after," so you can see how much has changed.</p>
-                <p>The result differs a little from run to run. The random seed used by the run is shown below the score. To get the same result again, enter that number in "Seed" under "Advanced parameters" and run with the same settings.</p>
+                <h4>Press Optimize</h4>
+                <ul>
+                  <li>Press <strong>Optimize</strong>. It takes from a few seconds to under a minute.</li>
+                  <li>When it finishes, the colormap <strong>before optimization</strong> appears under each preview so you can compare.</li>
+                  <li>Scores are shown as "before → after." <strong>Lower is better for every number.</strong> Rest the pointer on a number to see what it measures.</li>
+                  <li>Each run gives a slightly different result. If you don't like it, press Optimize again, or adjust a color first.</li>
+                  <li>To get exactly the same result again, type the seed shown under the score into "Seed" (under "Advanced parameters") and run with the same settings.</li>
+                </ul>
+                <div class="ui-map ui-map-inline" role="img" aria-label="Example of the display after optimization">
+                  <span class="ui-map-cap">Colormap preview</span><span class="ui-map-bar"></span>
+                  <span class="ui-map-note">Before optimization</span><span class="ui-map-bar ui-map-bar-before"></span>
+                  <span class="ui-map-score">E · Uniformity: <span class="dim">0.07804 →</span> 0.04433</span>
+                  <span class="ui-map-note">Top: after. Bottom: before. Score: before → after.</span>
+                </div>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">5</div>
               <div class="guide-step-content">
-                <h4>Check the result on the Test page</h4>
-                <p>Switch to the "Test" tab at the top to see your colormap applied to sample charts and images. A CVD simulation is shown alongside, so you can confirm with your own eyes that the result still reads clearly. If it's not quite what you wanted, go back to the Generator page, tweak a few colors, and run "Optimize" again.</p>
+                <h4>Check it on real pictures in the Test tab</h4>
+                <ul>
+                  <li>Open the <strong>Test</strong> tab to see your colormap applied to a set of sample data and images.</li>
+                  <li>Click one to enlarge it. Normal vision and each type of CVD are shown side by side.</li>
+                  <li>"Current (from Generator)" under "Colormap" is the one you are making. Switch to Jet, Viridis and others to compare.</li>
+                  <li>Move the pointer over a picture to read the value and color at that spot.</li>
+                  <li><strong>What to look for</strong>: bands or edges that aren't in the data, and areas that were distinct but blur together in the CVD pictures.</li>
+                </ul>
               </div>
             </div>
             <div class="guide-step">
               <div class="guide-step-icon">6</div>
               <div class="guide-step-content">
-                <h4>Save your colormap</h4>
-                <p>Use "Export" to save the result in the format you need.</p>
-                <p><strong>JSON</strong>: data meant to be loaded by another program or tool. <strong>CSV</strong>: a plain list of numbers you can open directly in Excel or similar spreadsheet software. <strong>PNG</strong>: the colormap saved as a color-bar image, handy for pasting into a document or slide. <strong>Python (matplotlib)</strong>: a file (colormap.py) ready to use with the Python plotting library matplotlib. Put it next to your script, write <code>from colormap import cmap</code>, and use it as in <code>plt.imshow(data, cmap=cmap)</code>.</p>
-                <p>The JSON and Python files also record the conditions under which the colormap was made (method, source colormap, CVD types, weights, random seed, scores and the app version), which you can use to report how it was made, for example in a paper.</p>
-                <p>Colormaps you create on this site are free to use, with no attribution required.</p>
+                <h4>Save it</h4>
+                <ul>
+                  <li><strong>PNG</strong>: a color-bar image, for documents and slides.</li>
+                  <li><strong>CSV</strong>: the 256 colors as numbers; opens in Excel.</li>
+                  <li><strong>JSON</strong>: data for other programs to read.</li>
+                  <li><strong>Python (matplotlib)</strong>: a ready-to-use file (colormap.py). Put it next to your script, write <code>from colormap import cmap</code>, and use it as in <code>plt.imshow(data, cmap=cmap)</code>.</li>
+                  <li>The JSON and Python files also record how the colormap was made (method, starting colormap, CVD types, settings, seed, scores) — handy when you need to report it in a paper.</li>
+                  <li>Colormaps you make here are free to use. No credit is required.</li>
+                </ul>
               </div>
             </div>
           </div>
           <div class="insight-box">
-            <strong>If something isn't working:</strong> If "Optimize" won't respond, check that both end slots (0 and 14) have colors set. To start over completely, re-select a preset or choose "Custom" to reset everything.
+            <strong>If something isn't working</strong>
+            <ul>
+              <li>Optimize won't start: check that squares 0 and 14 both have a color. Consistency also needs at least one CVD type and a color in all 15 squares.</li>
+              <li>You want to start over: pick the preset again and everything is reset.</li>
+              <li>The colors barely change: ★ colors are held close to where they are. Right-click to remove the ★ from colors that are allowed to move.</li>
+            </ul>
           </div>
         `,
       },
@@ -593,7 +701,13 @@ function renderTutorial() {
   const container = $('#tutorialContent');
   if (!container) return;
 
-  container.innerHTML = content.sections.map(s => `
+  // The how-to guide comes first; the background chapters follow under their own heading
+  const guide = content.sections.filter(s => s.id === 'how-to-use');
+  const background = content.sections.filter(s => s.id !== 'how-to-use');
+  const t = currentLang === 'ja'
+    ? { toc: '目次', background: 'くわしく知りたい方へ', backgroundNote: 'ここから先は、カラーマップの基礎と、このサイトの手法の説明です。使うだけなら読まなくても構いません。' }
+    : { toc: 'Contents', background: 'Background', backgroundNote: "The chapters below cover the basics of colormaps and the methods behind this site. You don't need them to use it." };
+  const section = s => `
     <section class="tutorial-section" id="tutorial-${s.id}">
       <div class="tutorial-section-header">
         <span class="tutorial-section-icon">${s.icon}</span>
@@ -601,7 +715,22 @@ function renderTutorial() {
       </div>
       <div class="tutorial-section-body">${s.body}</div>
     </section>
-  `).join('');
+  `;
+  const tocItem = s => `<button type="button" class="tutorial-toc-item" data-target="tutorial-${s.id}">${s.icon} ${s.title}</button>`;
+  container.innerHTML = `
+    <nav class="tutorial-toc" aria-label="${t.toc}">
+      <span class="tutorial-toc-title">${t.toc}</span>
+      ${guide.map(tocItem).join('')}
+      <span class="tutorial-toc-sep">${t.background}</span>
+      ${background.map(tocItem).join('')}
+    </nav>
+    ${guide.map(section).join('')}
+    <div class="tutorial-divider"><h2>${t.background}</h2><p>${t.backgroundNote}</p></div>
+    ${background.map(section).join('')}
+  `;
+  container.querySelectorAll('.tutorial-toc-item').forEach(b => b.addEventListener('click', () => {
+    document.getElementById(b.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
 
   // Render interactive demos after DOM update
   requestAnimationFrame(() => {

@@ -18,7 +18,7 @@ import { lab256FromEntries, arcLengthExtract, adjacentDeltaE, gapIndices } from 
 
 // ===== Constants =====
 const N_SLOTS = 15;
-const APP_VERSION = '1.4.2';
+const APP_VERSION = '1.5';
 const GAMUT_RANGE = 128; // a*, b* range: [-128, 128]
 
 // ===== State =====
@@ -439,6 +439,9 @@ function renderColorStrip() {
     slot.className = 'color-slot';
     if (i === state.selectedSlot) slot.classList.add('selected');
     if (state.prefIndices.has(i) && pts[i]) slot.classList.add('preference');
+    slot.title = !pts[i] ? 'Empty: filled in automatically from the neighboring colors. Click to choose a color.'
+      : state.prefIndices.has(i) ? '★ Specified color: the optimization keeps it close to this color. Right-click to remove the ★.'
+      : 'No ★: used as a starting point and free to move more. Right-click to add the ★.';
 
     const swatch = document.createElement('div');
     swatch.className = 'color-slot-swatch';
@@ -970,12 +973,27 @@ function evalOriginalGap(params, returnDetails = false) {
   return eScore(ls, as, bs, m, dInit, params, returnDetails);
 }
 
+// What each number of the breakdown means (shown when the pointer rests on it)
+function scoreTip(key) {
+  const who = { N: 'normal color vision', P: 'P-type', D: 'D-type', T: 'T-type' };
+  const lower = ' Lower is better.';
+  let mt;
+  if (key === 'eu') return 'Uniformity for normal color vision (×100): how even the color differences between neighboring colors are.' + lower;
+  if ((mt = key.match(/^eu([PDT])$/))) return `Uniformity as seen with ${who[mt[1]]} (×100): how even the color differences between neighboring colors are.` + lower;
+  if ((mt = key.match(/^e([PDT])Psi$/))) return `Contrast for ${who[mt[1]]} (×1000): whether colors stay distinguishable.` + lower;
+  if (key === 'F') return "Consistency (×100): whether the original colormap's pattern of color differences is kept under CVD." + lower;
+  if ((mt = key.match(/^f([PDT])$/))) return `Consistency for ${who[mt[1]]} (×100).` + lower;
+  if (key === 'fHat') return 'Average change of the neighboring color differences from the original colormap (ΔE). 0 = same pattern as the original.';
+  if (key === 'es') return 'Smoothness (×1000): how smoothly the colors change along the colormap.' + lower;
+  return '';
+}
+
 // `before` (optional): the same breakdown before the last optimization; each value is then shown as "before → now"
 function renderScoreDetails(d, params, before = null) {
   const item = (label, key, scale, digits) => {
     const now = (d[key] * scale).toFixed(digits);
     const value = before ? `<span class="score-detail-before">${(before[key] * scale).toFixed(digits)} →</span> ${now}` : now;
-    return `<div class="score-detail-item"><span class="score-detail-label">${label}:</span> <span class="score-detail-value">${value}</span></div>`;
+    return `<div class="score-detail-item" title="${scoreTip(key)}"><span class="score-detail-label">${label}:</span> <span class="score-detail-value">${value}</span></div>`;
   };
   let html = '';
   if (params.mode === 'consistency') {
@@ -1474,6 +1492,7 @@ function startOptimization() {
         seed: params.seed,
         params: runParams,
         source: sourceName(),
+        specified: assignedIndices.filter(i => state.prefIndices.has(i)),
         before: beforeRun,
         afterScore: finalEval.finalScore,
         result: state.optimizedSlots.map(q => ({ ...q })),
@@ -1490,7 +1509,8 @@ function startOptimization() {
     initialLs: Array.from(fullLs),
     initialAs: Array.from(fullAs),
     initialBs: Array.from(fullBs),
-    prefIndices: assignedIndices,
+    // ★ colors are the specified colors (kept within R of the chosen color); the others use R′
+    prefIndices: assignedIndices.filter(i => state.prefIndices.has(i)),
     params,
   });
 }
@@ -1525,6 +1545,7 @@ function buildMetadata() {
     meta.edited_after_optimization = !lastRunIntact();
     meta.seed = run.seed;
     meta.cvd_types = ['P', 'D', 'T'].filter(t => p['U' + t]);
+    meta.specified_slots = run.specified;
     meta.parameters = {
       [p.mode === 'consistency' ? 'f_WEIGHT' : 'u_WEIGHT']: p.u_WEIGHT, q_WEIGHT: p.q_WEIGHT, S1_WEIGHT: p.S1_WEIGHT,
       R: p.R, R_dash: p.R_dash, T_init: p.tInit, T_end: p.tEnd, alpha: p.alpha, iterations: p.iterCount,
@@ -1881,6 +1902,7 @@ function initEvents() {
 
   // Optimize
   $('#btnOptimize').addEventListener('click', startOptimization);
+  $('#startHintTutorial').addEventListener('click', () => navigateToPage('tutorial'));
 
   // Export
   $('#btnExportJSON').addEventListener('click', exportJSON);
