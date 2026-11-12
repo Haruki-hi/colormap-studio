@@ -23,6 +23,7 @@ let activeImageW = 0;
 let activeImageH = 0;
 let currentLUT = null;
 let currentInterp = null;
+let currentWW, currentWL; // windowing of the view on screen (undefined unless a CT dataset)
 let renderVersion = 0;
 let tooltipInitialized = false;
 let lastCTDatasetId = null; // track dataset changes to avoid resetting sliders mid-session
@@ -275,46 +276,35 @@ function getValueIndex(val, dataName, dsMin, dsMax, ww, wl) {
   return Math.min(255, Math.max(0, Math.round(norm * 255)));
 }
 
+// Labels of a value scale: at most 2 decimals, no trailing zeros (0.5, 127.5, -27.95)
+function fmtValue(v) {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  return Number.isFinite(n) ? String(+n.toFixed(2)) : '';
+}
+
+// Color bar of one view, placed UNDER its canvas (not drawn into it: the canvas has the data's own
+// resolution, so a bar and text drawn inside would be blurred on small data and would hide the data)
 function drawLegend(canvas, lut, minLabel, maxLabel, unit = '') {
   if (!canvas || !lut) return;
-  const ctx = canvas.getContext('2d');
-  const cw = canvas.width;
-  const ch = canvas.height;
-  const padding = Math.floor(cw * 0.06);
-  const barW = cw - padding * 2;
-  const barH = Math.max(10, Math.floor(ch * 0.032));
-  const barY = ch - barH - Math.floor(ch * 0.045);
-
-  // Colormap gradient bar
-  for (let x = 0; x < barW; x++) {
-    const i = Math.min(Math.floor(x / barW * 256), 255);
-    ctx.fillStyle = `rgb(${lut[i][0]},${lut[i][1]},${lut[i][2]})`;
-    ctx.fillRect(padding + x, barY, 1, barH);
+  let box = canvas.nextElementSibling;
+  if (!box || !box.classList.contains('test-legend')) {
+    box = document.createElement('div');
+    box.className = 'test-legend';
+    box.innerHTML = '<canvas class="test-legend-bar" width="256" height="1"></canvas><div class="colormap-labels"><span></span><span></span><span></span></div>';
+    canvas.after(box);
   }
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(padding, barY, barW, barH);
-
-  // Background for labels
-  const lblH = Math.floor(ch * 0.038);
-  ctx.fillStyle = 'rgba(0,0,0,0.65)';
-  ctx.fillRect(padding, barY + barH + 1, barW, lblH);
-
-  // Label text
-  const fs = Math.max(9, Math.min(13, Math.floor(cw * 0.032)));
-  ctx.font = `600 ${fs}px Inter, sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  const midLabel = ((parseFloat(minLabel) + parseFloat(maxLabel)) / 2).toFixed(
-    Number.isInteger(parseFloat(minLabel)) ? 0 : 2
-  );
-  const textY = barY + barH + lblH * 0.78;
-  ctx.textAlign = 'left';
-  ctx.fillText(minLabel + unit, padding + 2, textY);
-  ctx.textAlign = 'center';
-  ctx.fillText(midLabel + unit, padding + barW / 2, textY);
-  ctx.textAlign = 'right';
-  ctx.fillText(maxLabel + unit, padding + barW - 2, textY);
-  ctx.textAlign = 'left';
+  const bar = box.querySelector('canvas');
+  const ctx = bar.getContext('2d');
+  const img = ctx.createImageData(256, 1);
+  for (let i = 0; i < 256; i++) {
+    img.data[i * 4] = lut[i][0]; img.data[i * 4 + 1] = lut[i][1]; img.data[i * 4 + 2] = lut[i][2]; img.data[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  const lo = parseFloat(minLabel), hi = parseFloat(maxLabel);
+  const spans = box.querySelectorAll('span');
+  spans[0].textContent = fmtValue(lo) + unit;
+  spans[1].textContent = fmtValue((lo + hi) / 2) + unit;
+  spans[2].textContent = fmtValue(hi) + unit;
 }
 
 function applyWindowing(gray, ww, wl) {
@@ -462,10 +452,9 @@ function drawTestColormapBar(colormapResult) {
 function updateColormapLabels(minVal, maxVal) {
   const lbls = document.querySelectorAll('#testDetailView .colormap-labels span');
   if(lbls.length >= 3) {
-    lbls[0].textContent = typeof minVal === 'number' ? (minVal % 1 === 0 ? minVal : minVal.toFixed(2)) : '0.0';
-    const midVal = (minVal + maxVal) / 2;
-    lbls[1].textContent = typeof minVal === 'number' ? (midVal % 1 === 0 ? midVal : midVal.toFixed(2)) : '0.5';
-    lbls[2].textContent = typeof maxVal === 'number' ? (maxVal % 1 === 0 ? maxVal : maxVal.toFixed(2)) : '1.0';
+    lbls[0].textContent = fmtValue(minVal);
+    lbls[1].textContent = fmtValue((minVal + maxVal) / 2);
+    lbls[2].textContent = fmtValue(maxVal);
   }
 }
 
@@ -537,6 +526,7 @@ export async function renderDetail() {
   const isTargetCT = CT_DATASET_IDS.includes(activeDatasetId) || datasetConfig?.isCT;
   const ww = isTargetCT ? (parseInt($('#ctWW')?.value) || undefined) : undefined;
   const wl = isTargetCT ? (parseInt($('#ctWL')?.value) || undefined) : undefined;
+  currentWW = ww; currentWL = wl;
   
   if(isImageMode) {
      activeImagePixels = data.pixels; activeImageW = data.width; activeImageH = data.height; activeData = null;
@@ -603,7 +593,8 @@ function initTooltip() {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left, y = e.clientY - rect.top;
     const tooltip = $('#testTooltip'); if (!tooltip || !currentLUT) return;
-    const ww = parseInt($('#ctWW')?.value) || undefined, wl = parseInt($('#ctWL')?.value) || undefined;
+    // the same windowing as the picture (the hidden CT sliders must not be used for other data)
+    const ww = currentWW, wl = currentWL;
     if (isImageMode && activeImagePixels) {
       const px = Math.floor(x / rect.width * activeImageW), py = Math.floor(y / rect.height * activeImageH);
       if (px >= 0 && px < activeImageW && py >= 0 && py < activeImageH) {

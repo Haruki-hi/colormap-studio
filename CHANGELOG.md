@@ -2,6 +2,13 @@
 
 All notable changes to Colormap Studio are documented here.
 
+## v1.4.2 — 2026-11-12
+
+### Fixed
+- Test tab: the color bar was drawn inside each picture at the data's own resolution, so on small data (e.g. Topography, 61 × 87) it was blurred, its labels overlapped and it hid part of the data. Each view now has its own color bar with min / mid / max labels **under** the picture
+- Test tab: the tooltip showed a wrong color for the Math and Sample datasets (it applied the hidden CT windowing sliders); it now shows the color actually drawn
+- Test tab: value labels use one format (at most 2 decimals, no trailing zeros)
+
 ## v1.4.1 — 2026-11-11
 
 ### Changed

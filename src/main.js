@@ -18,7 +18,7 @@ import { lab256FromEntries, arcLengthExtract, adjacentDeltaE, gapIndices } from 
 
 // ===== Constants =====
 const N_SLOTS = 15;
-const APP_VERSION = '1.4.1';
+const APP_VERSION = '1.4.2';
 const GAMUT_RANGE = 128; // a*, b* range: [-128, 128]
 
 // ===== State =====
